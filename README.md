@@ -9,16 +9,11 @@ The script supports uploading, downloading, and syncing a folder on the computer
 
 This script was built having looked at other available scripts for the Raspberry Pi. These other scripts do not appear to cover a direct syncing of local folders with Dropbox, i.e. only uploading / downloading files where there have been changes made, additing , so I wrote Drupebox to achieve this goal. For reference, other dropbox scripts can be found at https://github.com/GuoJing/Drop2PI and https://github.com/andreafabrizi/Dropbox-Uploader 
 
-To run the script:
+To run the script do the following:
 
 Download the source code:
 ```
 git clone https://github.com/duncanhawthorne/drupebox.git
-```
-
-Change directory into the Drupebox folder
-```
-cd drupebox
 ```
 
 Install dependencies for the script
@@ -26,9 +21,14 @@ Install dependencies for the script
 sudo apt-get install python-configobj
 ```
 
+Change directory into the Drupebox folder
+```
+cd drupebox
+```
+
 Run the drupebox script
 ```
-python drupebox
+python drupebox.py
 ```
 The drupebox script with start an authorization with Dropbox.
 Click the link to dropbox that will appear in the terminal (or go to the link using a different computer).
