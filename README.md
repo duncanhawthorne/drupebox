@@ -12,17 +12,24 @@ This script was built having looked at other available scripts for the Raspberry
 To run the script:
 
 Download the source code:
+```
 git clone https://github.com/duncanhawthorne/drupebox.git
+```
 
 Change directory into the Drupebox folder
+```
 cd drupebox
+```
 
 Install dependencies for the script
+```
 sudo apt-get install python-configobj
+```
 
 Run the drupebox script
+```
 python drupebox
-
+```
 The drupebox script with start an authorization with Dropbox.
 Click the link to dropbox that will appear in the terminal (or go to the link using a different computer).
 Log into Dropbox and approve the authorization for the app
