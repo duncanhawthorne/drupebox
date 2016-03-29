@@ -31,11 +31,10 @@ Run the drupebox script
 python drupebox.py
 ```
 The drupebox script with start an authorization with Dropbox.
-Click the link to dropbox that will appear in the terminal (or go to the link using a different computer).
-Log into Dropbox and approve the authorization for the app
-Dropbox will give you a code to paste back into the terminal window to complete the authorization
-
-Tell drupebox the local folder to keep in sync, or press enter to select the default folder /home/pi/Dropbox
+*Click the link to dropbox that will appear in the terminal (or go to the link using a different computer).
+*Log into Dropbox and approve the authorization for the app
+*Dropbox will give you a code to paste back into the terminal window to complete the authorization
+*Tell drupebox the local folder to keep in sync, or press enter to select the default folder /home/pi/Dropbox
 
 Drupebox will do an initial upload of what is in that folder
 When Drupebox is run subsequently, it will download/upload the local/remote additions/changes/deletions to keep the folder in sync.
