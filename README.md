@@ -7,7 +7,7 @@ There is no official Dropbox client for the Raspberry Pi as the Raspberry Pi use
 
 The script supports uploading, downloading, and syncing a folder on the computer to an app folder inside Dropbox. The terminal script can be run regularly, e.g. hourly through a cron job, to keep the folder regularly in sync.
 
-This script was built having looked at other available scripts for the Raspberry Pi. These other scripts do not appear to cover a direct syncing of local folders with Dropbox, i.e. only uploading / downloading files where there have been changes made, additing , so I wrote Drupebox to achieve this goal. For reference, other dropbox scripts can be found at https://github.com/GuoJing/Drop2PI and https://github.com/andreafabrizi/Dropbox-Uploader 
+This script was built having looked at other available scripts for the Raspberry Pi. These other scripts do not appear to cover a direct syncing of local folders with Dropbox, i.e. only uploading / downloading files where there have been changes made and keeping the folder in sync , so I wrote Drupebox to achieve this goal. For reference, other dropbox scripts can be found at https://github.com/GuoJing/Drop2PI and https://github.com/andreafabrizi/Dropbox-Uploader 
 
 To run the script do the following:
 
