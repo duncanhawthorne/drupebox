@@ -1,7 +1,7 @@
 # drupebox
 Drupebox is a Dropbox sync script for the Raspberry Pi.
 
-![](https://raw.githubusercontent.com/sarahschofield120/drupebox/master/icon.png =100x100)
+![](https://raw.githubusercontent.com/sarahschofield120/drupebox/master/icon.png)
 
 There is no official Dropbox client for the Raspberry Pi as the Raspberry Pi uses an ARM based processor. This script provides an approximation of the functionality using the Dropbox API through a bash script which can be run from the Raspbian terminal. The program will also work on other linux and unix type environments.
 
