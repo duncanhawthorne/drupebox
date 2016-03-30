@@ -19,6 +19,7 @@ def action_locally_deleted_files():
     locally_deleted_files = determine_deleted_files(file_tree_now,
             file_tree_from_last_run)
     for locally_deleted_file in locally_deleted_files:
+        info('Found local file deleted, so delete on dropbox '+locally_deleted_file)
         db_client.file_delete(locally_deleted_file[len(dropbox_local_path):])
     store_tree(file_tree_now)
 

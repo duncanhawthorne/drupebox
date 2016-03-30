@@ -3,7 +3,7 @@
 import os
 import time
 from datetime import datetime
-root = '/dev/shm/'
+tmp_file_location = '/dev/shm/'
 
 
 def fyi(text):
@@ -14,7 +14,7 @@ def info(text):
     print '>>> ' + text
 
 
-def get_config():
+def get_config_real():
     from configobj import ConfigObj
     config_filename = os.path.join(os.getenv('HOME'), '.config',
                                    'drupebox')
@@ -43,6 +43,8 @@ def get_config():
         if config['dropbox_local_path'] == '':
             config['dropbox_local_path'] = os.path.join(os.getenv('HOME'
                     ), 'Dropbox') + '/'
+        if config['dropbox_local_path'][-1] != "/":
+            config['dropbox_local_path'] = config['dropbox_local_path']+"/"
         config['max_file_size'] = 10000000
         config.write()
 
@@ -50,40 +52,41 @@ def get_config():
     return config
 
 
-def xconfig():
-    if xconfig.location == '':
-        xconfig.location = get_config()
-    return xconfig.location
+def get_config():
+    if get_config.cache == '': #First run
+        get_config.cache = get_config_real()
+    return get_config.cache
 
 
-xconfig.location = ''
+get_config.cache = ''
 
 
 def dump(text, name):
     text = str(text)
-    with open(root + name, 'wb') as f:
+    with open(tmp_file_location + name, 'wb') as f:
         f.write(text)
 
 
 def get_tree():
     tree = []
-    for (root, dirs, files) in os.walk(xconfig()['dropbox_local_path'],
+    for (root, dirs, files) in os.walk(get_config()['dropbox_local_path'],
             topdown=True, followlinks=True):
         for name in files:
             tree.append(os.path.join(root, name))
         for name in dirs:
             tree.append(os.path.join(root, name))
+    tree.sort(key = lambda s: -len(s)) #sort longest to smallest so that later files get deleted before the folders that they are in
     return tree
 
 
 def store_tree(tree):
     tree = '\n'.join(tree)
-    dump(tree, 'treeStore')
+    dump(tree, 'drupebox_last_seen_files')
 
 
 def load_tree():
     try:
-        last_tree = file(root + 'treeStore', 'r').read()
+        last_tree = file(tmp_file_location + 'drupebox_last_seen_files', 'r').read()
     except:
         last_tree = ''
     last_tree = last_tree.split('\n')
@@ -155,7 +158,7 @@ def fix_local_time(client, remote_file_path):
         if tmp_item['path'] == remote_path:
             break  # found it
     tmp_time = tmp_item['modified']
-    os.utime(xconfig()['dropbox_local_path'] + remote_path,
+    os.utime(get_config()['dropbox_local_path'] + remote_path,
              (int(unnice(tmp_time)), int(unnice(tmp_time))))
 
 
