@@ -1,13 +1,13 @@
 # drupebox
-Drupebox is a Dropbox sync script for the Raspberry Pi.
+Drupebox is a Dropbox sync script built for the Raspberry Pi.
 
 ![](https://raw.githubusercontent.com/sarahschofield120/drupebox/master/icon.png)
 
-There is no official Dropbox client for the Raspberry Pi as the Raspberry Pi uses an ARM based processor which is  not supported. This script provides an approximation of the functionality using the Dropbox API through a python script which can be run from the Raspbian terminal. The program will also work on other linux environments.
+There is no official Dropbox client for the Raspberry Pi as the Raspberry Pi uses an ARM based processor which is  not supported by Dropbox. This script provides an approximation of the functionality using the Dropbox API through a python script which can be run from the Raspbian terminal. The script will also work on other linux environments.
 
-The drupebox script supports uploading, downloading, and syncing a folder on the computer to an app folder inside Dropbox. The terminal script can be run regularly, e.g. hourly through a cron job, to keep the folder regularly in sync.
+The drupebox script supports uploading, downloading, and syncing a folder on your computer to an app folder inside Dropbox. The terminal script can be run regularly, e.g. hourly through a cron job or on each boot, to keep the folder regularly in sync.
 
-The drupebox script was built having looked at other available scripts for the Raspberry Pi. These other scripts do not appear to cover a direct syncing of local folders with Dropbox, i.e. only uploading / downloading files where there have been changes made to keep the folder in sync. Drupebox achieves this goal. For reference, other Dropbox scripts can be found at https://github.com/GuoJing/Drop2PI and https://github.com/andreafabrizi/Dropbox-Uploader 
+The drupebox script was built having looked at other available scripts for the Raspberry Pi. These other scripts do not appear to cover a direct syncing of local folders with Dropbox. Drupebox is written to achieve the goal of detecting and uploading / downloading files only where there have been changes made to keep the folder in sync. For reference, other Dropbox scripts can be found at https://github.com/GuoJing/Drop2PI and https://github.com/andreafabrizi/Dropbox-Uploader 
 
 To run the script do the following:
 
@@ -30,14 +30,14 @@ Run the drupebox script
 ```
 python drupebox.py
 ```
-The drupebox script with start an authorization with Dropbox.
+The drupebox script will start an authorization process with Dropbox.
 * Click the link to dropbox that will appear in the terminal (or go to the link using a different computer).
 * Log into Dropbox and approve the authorization for the app
 * Dropbox will give you a code to paste back into the terminal window to complete the authorization
 * Tell drupebox the folder on your computer to keep in sync with dropbox, or press enter to select the default folder /home/pi/Dropbox
 
-Drupebox will then do an upload of what is in that folder
-When the Drupebox script is run again, it will download/upload the local/remote additions/changes/deletions to keep the folder on your computer and the dropbox folder in sync.
+Drupebox will then do an upload of what is in that folder to Dropbox
+When the Drupebox script is run again, it will download/upload the local/remote additions/changes/deletions to keep the folder on your computer and the Dropbox folder in sync.
 
 
 
