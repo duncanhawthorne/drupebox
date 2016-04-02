@@ -11,14 +11,14 @@ The Drupebox script was built having looked at other available scripts for the R
 
 To run the script do the following:
 
-Download the source code:
+Install git and download the source code:
 ```
 git clone https://github.com/duncanhawthorne/drupebox.git
 ```
 
 Install dependencies for the script
 ```
-sudo apt-get install python-configobj
+sudo apt-get install python-configobj python-urllib3
 ```
 
 Change directory into the Drupebox folder
