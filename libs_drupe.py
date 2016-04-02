@@ -45,6 +45,8 @@ def get_config_real():
                     ), 'Dropbox') + '/'
         if config['dropbox_local_path'][-1] != "/":
             config['dropbox_local_path'] = config['dropbox_local_path']+"/"
+        if not path_exists(config['dropbox_local_path']):
+            os.makedirs(config['dropbox_local_path'])    
         config['max_file_size'] = 10000000
         config.write()
 
