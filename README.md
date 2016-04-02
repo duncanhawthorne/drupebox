@@ -5,20 +5,20 @@ Drupebox is a Dropbox sync script built for the Raspberry Pi.
 
 There is no official Dropbox client for the Raspberry Pi as the Raspberry Pi uses an ARM based processor which is  not supported by Dropbox. This script provides an approximation of the functionality using the Dropbox API through a python script which can be run from the Raspbian terminal. The script will also work on other linux environments.
 
-The drupebox script supports uploading, downloading, and syncing a folder on your computer to an app folder inside Dropbox. The terminal script can be run regularly, e.g. hourly through a cron job or on each boot, to keep the folder regularly in sync.
+The Drupebox script supports uploading, downloading, and syncing a folder on your computer to an app folder inside Dropbox. The terminal script can be run regularly, e.g. hourly through a cron job or on each boot, to keep the folder regularly in sync.
 
-The drupebox script was built having looked at other available scripts for the Raspberry Pi. These other scripts do not appear to cover a direct syncing of local folders with Dropbox. Drupebox is written to achieve the goal of detecting and uploading / downloading files only where there have been changes made to keep the folder in sync. For reference, other Dropbox scripts can be found at https://github.com/GuoJing/Drop2PI and https://github.com/andreafabrizi/Dropbox-Uploader 
+The Drupebox script was built having looked at other available scripts for the Raspberry Pi. These other scripts do not appear to cover a direct syncing of local folders with Dropbox. Drupebox is written to achieve the goal of detecting and uploading / downloading files only where there have been changes made to keep the folder in sync. For reference, other Dropbox scripts can be found at https://github.com/GuoJing/Drop2PI and https://github.com/andreafabrizi/Dropbox-Uploader 
 
 To run the script do the following:
 
-Download the source code:
+Install git and download the source code:
 ```
 git clone https://github.com/duncanhawthorne/drupebox.git
 ```
 
 Install dependencies for the script
 ```
-sudo apt-get install python-configobj
+sudo apt-get install python-configobj python-urllib3
 ```
 
 Change directory into the Drupebox folder
