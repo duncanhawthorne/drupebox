@@ -20,7 +20,10 @@ def action_locally_deleted_files():
             file_tree_from_last_run)
     for locally_deleted_file in locally_deleted_files:
         info('Found local file deleted, so delete on dropbox '+locally_deleted_file)
-        db_client.file_delete(locally_deleted_file[len(dropbox_local_path):])
+        try:
+            db_client.file_delete(locally_deleted_file[len(dropbox_local_path):])
+        except :
+            info('Tried to delete a file on dropbox, but it was not there '+locally_deleted_file)
     store_tree(file_tree_now)
 
 
@@ -31,11 +34,9 @@ def action_folder(remote_folder_path):
     remote_folder = db_client.metadata('/' + remote_folder_path)['contents']
     for remote_item in remote_folder:
         remote_file_path = remote_item['path']
-        local_file_path = dropbox_local_path + remote_file_path
-
+        local_file_path = dropbox_local_path + remote_file_path[1:]
         if not path_exists(local_file_path) \
-            or unix_time(remote_item['modified']) \
-            > local_item_modified_time(local_file_path):
+            or unix_time(remote_item['modified']) > local_item_modified_time(local_file_path):
             info('Found new file on remote, or remote file has been updated - downloading '
                   + remote_file_path)
             if remote_item['is_dir']:

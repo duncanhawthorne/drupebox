@@ -122,20 +122,14 @@ def download(client, remote_file_path, local_file_path):
 
     # print metadata
 
-def unnice(timer):
+def unix_time(timer):
     return time.mktime(datetime.strptime(timer,
                        '%a, %d %b %Y %H:%M:%S +0000').timetuple())
 
 
-unix_time = unnice
-
-
-def nice(timepoint):
+def readable_time(timepoint):
     return datetime.fromtimestamp(float(timepoint)).strftime('%a, %d %b %Y %H:%M:%S +0000'
             )
-
-
-readable_time = nice
 
 
 def path_exists(path):
@@ -161,7 +155,7 @@ def fix_local_time(client, remote_file_path):
             break  # found it
     tmp_time = tmp_item['modified']
     os.utime(get_config()['dropbox_local_path'] + remote_path,
-             (int(unnice(tmp_time)), int(unnice(tmp_time))))
+             (int(unix_time(tmp_time)), int(unix_time(tmp_time))))
 
 
 def skip(local_file_path):
@@ -204,7 +198,7 @@ def remote_item_modified(client, remote_file_path):
         if unn_item['path'] == remote_file_path:
             if 'is_deleted' in unn_item and unn_item['is_deleted'] \
                 == True:
-                remote_time = unnice(unn_item['modified'])
+                remote_time = unix_time(unn_item['modified'])
                 break
     return remote_time
 
