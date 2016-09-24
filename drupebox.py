@@ -32,7 +32,12 @@ def action_folder(remote_folder_path):
     local_folder_path = dropbox_local_path + remote_folder_path
 
     remote_folder = db_client.metadata('/' + remote_folder_path)['contents']
+    remote_folder_checked_time = time.time()
     for remote_item in remote_folder:
+        if time.time() > remote_folder_checked_time + 60:
+            info('last checked in with server over 60 seconds ago, refreshing')
+            action_folder(remote_folder_path)
+            return
         remote_file_path = remote_item['path']
         local_file_path = dropbox_local_path + remote_file_path[1:]
         if not path_exists(local_file_path) \
@@ -64,6 +69,10 @@ def action_folder(remote_folder_path):
                 'Modification time on a folder does not matter - no action'
 
     for local_item in os.listdir(local_folder_path):
+        if time.time() > remote_folder_checked_time + 60:
+            info('last checked in with server over 60 seconds ago, refreshing')
+            action_folder(remote_folder_path)
+            return
         remote_file_path = '/' + remote_folder_path + local_item
         local_file_path = local_folder_path + local_item
         if skip(local_file_path):
