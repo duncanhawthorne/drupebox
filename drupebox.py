@@ -9,8 +9,7 @@ config = get_config()
 max_file_size = int(config['max_file_size'])
 dropbox_local_path = config['dropbox_local_path']
 
-db_client = dropbox.client.DropboxClient(config['access_token'])
-
+db_client = dropbox.Dropbox(config['access_token']) #dropbox.client.DropboxClient(config['access_token'])
 
 def action_locally_deleted_files():
     fyi('Actioning locally deleted files')
@@ -31,20 +30,21 @@ def action_folder(remote_folder_path):
     fyi(remote_folder_path)
     local_folder_path = dropbox_local_path + remote_folder_path
 
-    remote_folder = db_client.metadata('/' + remote_folder_path)['contents']
+    remote_folder = db_client.files_list_folder(fp(remote_folder_path)).entries # db_client.metadata('/' + remote_folder_path)['contents']
     remote_folder_checked_time = time.time()
     for remote_item in remote_folder:
         if time.time() > remote_folder_checked_time + 60:
             info('last checked in with server over 60 seconds ago, refreshing')
             action_folder(remote_folder_path)
             return
-        remote_file_path = remote_item['path']
+        remote_file_path = remote_item.path_display
         local_file_path = dropbox_local_path + remote_file_path[1:]
         if not path_exists(local_file_path) \
-            or unix_time(remote_item['modified']) > local_item_modified_time(local_file_path):
+            or not isinstance(remote_item, dropbox.files.FolderMetadata) \
+            and unix_time(remote_item.client_modified) > local_item_modified_time(local_file_path):# unix_time(remote_item['modified']) > local_item_modified_time(local_file_path):
             info('Found new file on remote, or remote file has been updated - downloading '
                   + remote_file_path)
-            if remote_item['is_dir']:
+            if isinstance(remote_item, dropbox.files.FolderMetadata):
                 if not path_exists(local_file_path):
                     os.makedirs(local_file_path)
                 else:
@@ -52,11 +52,12 @@ def action_folder(remote_folder_path):
 
             else:
                 download(db_client, remote_file_path, local_file_path)
-            fix_local_time(db_client, remote_file_path)
+                fix_local_time(db_client, remote_file_path)
             
-        elif local_item_modified_time(local_file_path) > unix_time(remote_item['modified']):
+        elif not isinstance(remote_item, dropbox.files.FolderMetadata) \
+            and local_item_modified_time(local_file_path) > unix_time(remote_item.client_modified):
 
-            if not remote_item['is_dir']:
+            if not isinstance(remote_item, dropbox.files.FolderMetadata):
                 info('Local file has been updated - uploading '
                      + remote_file_path)
                 if os.path.getsize(local_file_path) < max_file_size:
@@ -95,7 +96,7 @@ def action_folder(remote_folder_path):
                 if os.path.isdir(local_file_path):
                     info('New file is a folder, dont upload it but just create a folder directly on dropbox - subfiles will get picked up later '
                           + remote_file_path)
-                    db_client.file_create_folder(remote_file_path)
+                    db_client.files_create_folder(remote_file_path)
                 else:
                     if os.path.getsize(local_file_path) < max_file_size:
                         upload(db_client, local_file_path,
@@ -110,7 +111,7 @@ def action_folder(remote_folder_path):
             action_folder(remote_folder_path + sub_folder + '/')
 
 
-action_locally_deleted_files()
+#action_locally_deleted_files()
 fyi('Actioning all other local and remote files changes')
 action_folder('')
 print 'Sync complete at ', readable_time(time.time())
