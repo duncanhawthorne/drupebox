@@ -5,7 +5,6 @@ import time
 from datetime import datetime
 tmp_file_location = '/dev/shm/'
 
-
 def fyi(text):
     print '    ' + text
 
@@ -107,9 +106,11 @@ def determine_deleted_files(tree_now, tree_last):
 
 
 def upload(client, local_file_path, remote_file_path):
-    print 'uuu', local_file_path
+    print 'uuu', local_file_path	
     f = open(local_file_path, 'rb')
-    response = client.put_file(remote_file_path, f, overwrite=True)
+    import dropbox #FIXME this must not be necessary
+    client.files_upload(f.read(), remote_file_path, mute=True, mode=dropbox.files.WriteMode("overwrite",None))
+    #response = client.put_file(remote_file_path, f, overwrite=True)
 
 
 def download(client, remote_file_path, local_file_path):
@@ -197,16 +198,18 @@ def local_item_not_found_at_remote(remote_folder, remote_file_path):
     return unnaccounted_local_file
 
 
-def remote_item_modified(client, remote_file_path):
+def remote_item_modified_with_deleted(client, remote_file_path):
     remote_path = remote_file_path
     extra_path = '/'.join(remote_path.split('/')[0:-1])
     remote_folder_path = extra_path
     remote_folder_with_deleted = client.files_list_folder(fp(remote_folder_path),include_deleted=True).entries # client.metadata('/' + remote_folder_path, include_deleted=True)['contents']
     folder_with_deleted = remote_folder_with_deleted
     remote_time = 0
+    import dropbox #FIXME this must not be necessary
     for unn_item in folder_with_deleted:
+        print(unn_item)
         if unn_item.path_display == remote_file_path:
-            if unn_item.tag == "deleted": #'is_deleted' in unn_item and unn_item['is_deleted'] == True:
+            if isinstance(unn_item, dropbox.files.DeletedMetadata): # unn_item.tag == "deleted": #'is_deleted' in unn_item and unn_item['is_deleted'] == True:
                 remote_time = unix_time(unn_item.client_modified)
                 break
     return remote_time

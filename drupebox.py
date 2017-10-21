@@ -20,7 +20,7 @@ def action_locally_deleted_files():
     for locally_deleted_file in locally_deleted_files:
         info('Found local file deleted, so delete on dropbox '+locally_deleted_file)
         try:
-            db_client.file_delete(locally_deleted_file[len(dropbox_local_path):])
+            db_client.files_delete("/"+locally_deleted_file[len(dropbox_local_path):])
         except :
             info('Tried to delete a file on dropbox, but it was not there '+locally_deleted_file)
     store_tree(file_tree_now)
@@ -81,9 +81,8 @@ def action_folder(remote_folder_path):
         if local_item_not_found_at_remote(remote_folder,
                 remote_file_path):
             local_time = local_item_modified_time(local_file_path)
-            remote_time_of_deleted_file = \
-                remote_item_modified(db_client, remote_file_path)
-            if remote_time_of_deleted_file > local_time:
+            remote_time_of_deleted_file = False # remote_item_modified_with_deleted(db_client, remote_file_path) #Can't do this test currently, so blanking, and never do local delete following delete on server
+            if False and remote_time_of_deleted_file > local_time: #Can't do this test currently, so blanking, and never do local delete following delete on server
                 info('Unnaccounted file - Modified time for deleted remote file is latest - delete '
                       + remote_file_path)
                 if os.path.isdir(local_file_path):
@@ -111,7 +110,7 @@ def action_folder(remote_folder_path):
             action_folder(remote_folder_path + sub_folder + '/')
 
 
-#action_locally_deleted_files()
+action_locally_deleted_files()
 fyi('Actioning all other local and remote files changes')
 action_folder('')
 print 'Sync complete at ', readable_time(time.time())
