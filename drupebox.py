@@ -28,6 +28,10 @@ def action_locally_deleted_files():
 
 def action_folder(remote_folder_path):
     fyi(remote_folder_path)
+    for excluded_path in config["excluded_paths"]:
+        if remote_folder_path[0:len(excluded_path)] == excluded_path:
+            info("Path excluded")
+            return
     local_folder_path = dropbox_local_path + remote_folder_path
 
     remote_folder = db_client.files_list_folder(fp(remote_folder_path)).entries # db_client.metadata('/' + remote_folder_path)['contents']

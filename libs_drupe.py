@@ -27,14 +27,15 @@ def get_config_real():
         app_key = '1skff241na3x0at'
         app_secret = 'srd8w4mvppiq9vg'
 
-        flow = dropbox.client.DropboxOAuth2FlowNoRedirect(app_key,
+        flow = dropbox.DropboxOAuth2FlowNoRedirect(app_key,
                 app_secret)
         authorize_url = flow.start()
         print '1. Go to: ' + authorize_url
         print '2. Click "Allow" (you might have to log in first)'
         print '3. Copy the authorization code.'
         code = raw_input('Enter the authorization code here: ').strip()
-        (config['access_token'], config['user_id']) = flow.finish(code)
+        result = flow.finish(code)
+        (config['access_token'], config['user_id']) = result.access_token, result.user_id
         config['dropbox_local_path'] = \
             raw_input('Enter dropbox local path (or press enter for '
                       + os.path.join(os.getenv('HOME'), 'Dropbox')
@@ -47,6 +48,7 @@ def get_config_real():
         if not path_exists(config['dropbox_local_path']):
             os.makedirs(config['dropbox_local_path'])    
         config['max_file_size'] = 10000000
+        config['excluded_paths'] = ["SUPER SECRET LOCATION 1", "SUPERSECRET LOCATION 2"]
         config.write()
 
     config = ConfigObj(config_filename)
