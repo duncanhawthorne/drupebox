@@ -15,6 +15,8 @@ def info(text):
 
 def get_config_real():
     from configobj import ConfigObj
+    if not os.path.exists(os.path.join(os.getenv('HOME'), '.config')):
+        os.makedirs(os.path.join(os.getenv('HOME'), '.config'))
     config_filename = os.path.join(os.getenv('HOME'), '.config',
                                    'drupebox')
     if not path_exists(config_filename):
