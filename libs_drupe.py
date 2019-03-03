@@ -50,7 +50,7 @@ def get_config_real():
         if not path_exists(config['dropbox_local_path']):
             os.makedirs(config['dropbox_local_path'])    
         config['max_file_size'] = 10000000
-        config['excluded_paths'] = ["SUPER SECRET LOCATION 1", "SUPERSECRET LOCATION 2"]
+        config['excluded_paths'] = ["\"/home/pi/SUPER SECRET LOCATION 1\"", "\"/home/pi/SUPERSECRET LOCATION 2\""]
         config.write()
 
     config = ConfigObj(config_filename)
