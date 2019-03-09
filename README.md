@@ -36,7 +36,8 @@ The drupebox script will start an authorization process with Dropbox.
 * Dropbox will give you a code to paste back into the terminal window to complete the authorization
 * Tell drupebox the folder on your computer to keep in sync with dropbox, or press enter to select the default folder /home/pi/Dropbox/
 
-Drupebox will then do an upload of what is in that folder to Dropbox
+Drupebox will then do an upload of what is in that folder to Dropbox.
+
 When the Drupebox script is run again, it will download/upload the local/remote additions/changes/deletions to keep the folder on your computer and the Dropbox folder in sync.
 
 
