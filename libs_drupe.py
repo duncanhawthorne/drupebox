@@ -187,6 +187,12 @@ def skip(local_file_path):
     if local_item[0:len('.fuse_hidden')] == '.fuse_hidden':
         print('ignore fuse hidden files')
         return True
+    if local_item[-len('.pyc'):] == '.pyc':
+        print('ignore .pyc files')
+        return True
+    if local_item[-len('__pycache__'):] == '__pycache__':
+        print('ignore __pycache__')
+        return True
     else:
         try:
             local_time = local_item_modified_time(local_file_path)

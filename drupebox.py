@@ -112,7 +112,8 @@ def action_folder(remote_folder_path):
 
     for sub_folder in os.listdir(local_folder_path):
         if os.path.isdir(local_folder_path + sub_folder):
-            action_folder(remote_folder_path + sub_folder + '/')
+            if not skip(local_folder_path + sub_folder):
+                action_folder(remote_folder_path + sub_folder + '/')
 
 
 action_locally_deleted_files()
