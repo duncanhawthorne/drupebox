@@ -5,20 +5,12 @@ import time
 from datetime import datetime
 tmp_file_location = '/dev/shm/'
 
-
-def dinput(arg):
-    try:
-        return raw_input(arg) # python2 will do this, python3 will crash
-    except:
-        return input(arg) # python3
-
-
 def fyi(text):
-    print(('    ' + text))
+    print('    ' + text)
 
 
 def info(text):
-    print(('>>> ' + text))
+    print('>>> ' + text)
 
 
 def get_config_real():
@@ -40,14 +32,14 @@ def get_config_real():
         flow = dropbox.DropboxOAuth2FlowNoRedirect(app_key,
                 app_secret)
         authorize_url = flow.start()
-        print(('1. Go to: ' + authorize_url))
+        print('1. Go to: ' + authorize_url)
         print('2. Click "Allow" (you might have to log in first)')
         print('3. Copy the authorization code.')
-        code = dinput('Enter the authorization code here: ').strip()
+        code = raw_input('Enter the authorization code here: ').strip()
         result = flow.finish(code)
         (config['access_token'], config['user_id']) = result.access_token, result.user_id
         config['dropbox_local_path'] = \
-            dinput('Enter dropbox local path (or press enter for '
+            raw_input('Enter dropbox local path (or press enter for '
                       + os.path.join(os.getenv('HOME'), 'Dropbox')
                       + '/) ').strip()
         if config['dropbox_local_path'] == '':
@@ -77,7 +69,7 @@ get_config.cache = ''
 def dump(text, name):
     text = str(text)
     with open(tmp_file_location + name, 'wb') as f:
-        f.write(bytes(text.encode()))
+        f.write(text)
 
 
 def get_tree():
@@ -99,7 +91,7 @@ def store_tree(tree):
 
 def load_tree():
     try:
-        last_tree = open(tmp_file_location + 'drupebox_last_seen_files', 'r').read()
+        last_tree = file(tmp_file_location + 'drupebox_last_seen_files', 'r').read()
     except:
         last_tree = ''
     last_tree = last_tree.split('\n')
@@ -118,7 +110,7 @@ def determine_deleted_files(tree_now, tree_last):
 
 
 def upload(client, local_file_path, remote_file_path):
-    print(('uuu', local_file_path))
+    print('uuu', local_file_path)
     f = open(local_file_path, 'rb')
     import dropbox #FIXME this must not be necessary
     client.files_upload(f.read(), remote_file_path, mute=True, mode=dropbox.files.WriteMode("overwrite",None))
@@ -126,7 +118,7 @@ def upload(client, local_file_path, remote_file_path):
 
 
 def download(client, remote_file_path, local_file_path):
-    print(('ddd', remote_file_path))
+    print('ddd', remote_file_path)
     client.files_download_to_file(local_file_path, remote_file_path)
     #(f, metadata) = client.get_file_and_metadata(remote_file_path)
     #out = open(local_file_path, 'wb')
@@ -191,7 +183,7 @@ def skip(local_file_path):
         try:
             local_time = local_item_modified_time(local_file_path)
         except:
-            print(('crash on local time check on', local_item))
+            print('crash on local time check on', local_item)
             return True
         return False
 
