@@ -18,7 +18,7 @@ git clone https://github.com/duncanhawthorne/drupebox.git
 
 Install dependencies for the script
 ```
-sudo apt-get install python-configobj python-urllib3 python-chardet python-certifi 
+sudo apt-get install python-configobj python-urllib3 python-chardet python-certifi python3-certifi python3-idna python3-configobj
 ```
 
 Change directory into the Drupebox folder
