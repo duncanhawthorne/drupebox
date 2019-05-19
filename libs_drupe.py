@@ -6,11 +6,11 @@ from datetime import datetime
 tmp_file_location = '/dev/shm/'
 
 def fyi(text):
-    print '    ' + text
+    print('    ' + text)
 
 
 def info(text):
-    print '>>> ' + text
+    print('>>> ' + text)
 
 
 def get_config_real():
@@ -32,9 +32,9 @@ def get_config_real():
         flow = dropbox.DropboxOAuth2FlowNoRedirect(app_key,
                 app_secret)
         authorize_url = flow.start()
-        print '1. Go to: ' + authorize_url
-        print '2. Click "Allow" (you might have to log in first)'
-        print '3. Copy the authorization code.'
+        print('1. Go to: ' + authorize_url)
+        print('2. Click "Allow" (you might have to log in first)')
+        print('3. Copy the authorization code.')
         code = raw_input('Enter the authorization code here: ').strip()
         result = flow.finish(code)
         (config['access_token'], config['user_id']) = result.access_token, result.user_id
@@ -110,7 +110,7 @@ def determine_deleted_files(tree_now, tree_last):
 
 
 def upload(client, local_file_path, remote_file_path):
-    print 'uuu', local_file_path	
+    print('uuu', local_file_path)
     f = open(local_file_path, 'rb')
     import dropbox #FIXME this must not be necessary
     client.files_upload(f.read(), remote_file_path, mute=True, mode=dropbox.files.WriteMode("overwrite",None))
@@ -118,7 +118,7 @@ def upload(client, local_file_path, remote_file_path):
 
 
 def download(client, remote_file_path, local_file_path):
-    print 'ddd', remote_file_path
+    print('ddd', remote_file_path)
     client.files_download_to_file(local_file_path, remote_file_path)
     #(f, metadata) = client.get_file_and_metadata(remote_file_path)
     #out = open(local_file_path, 'wb')
@@ -177,13 +177,13 @@ def fix_local_time(client, remote_file_path):
 def skip(local_file_path):
     local_item = local_file_path.split('/')[-1]
     if local_item[0:len('.fuse_hidden')] == '.fuse_hidden':
-        print 'ignore fuse hidden files'
+        print('ignore fuse hidden files')
         return True
     else:
         try:
             local_time = local_item_modified_time(local_file_path)
         except:
-            print 'crash on local time check on', local_item
+            print('crash on local time check on', local_item)
             return True
         return False
 

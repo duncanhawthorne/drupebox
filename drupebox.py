@@ -117,5 +117,5 @@ def action_folder(remote_folder_path):
 action_locally_deleted_files()
 fyi('Actioning all other local and remote files changes')
 action_folder('')
-print 'Sync complete at ', readable_time(time.time())
+print('Sync complete at ', readable_time(time.time()))
 
