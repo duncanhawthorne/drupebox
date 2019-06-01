@@ -1,3 +1,6 @@
+from __future__ import print_function
+from builtins import str
+from builtins import bytes
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import os
@@ -8,11 +11,11 @@ tmp_file_location = '/dev/shm/'
 
 
 def fyi(text):
-    print(('    ' + text))
+    print('    ' + text)
 
 
 def info(text):
-    print(('>>> ' + text))
+    print('>>> ' + text)
 
 
 def get_config_real():
