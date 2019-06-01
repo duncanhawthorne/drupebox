@@ -2,15 +2,9 @@
 # -*- coding: utf-8 -*-
 import os
 import time
+from builtins import input
 from datetime import datetime
 tmp_file_location = '/dev/shm/'
-
-
-def dinput(arg):
-    try:
-        return raw_input(arg) # python2 will do this, python3 will crash
-    except:
-        return input(arg) # python3
 
 
 def fyi(text):
@@ -43,11 +37,11 @@ def get_config_real():
         print(('1. Go to: ' + authorize_url))
         print('2. Click "Allow" (you might have to log in first)')
         print('3. Copy the authorization code.')
-        code = dinput('Enter the authorization code here: ').strip()
+        code = input('Enter the authorization code here: ').strip()
         result = flow.finish(code)
         (config['access_token'], config['user_id']) = result.access_token, result.user_id
         config['dropbox_local_path'] = \
-            dinput('Enter dropbox local path (or press enter for '
+            input('Enter dropbox local path (or press enter for '
                       + os.path.join(os.getenv('HOME'), 'Dropbox')
                       + '/) ').strip()
         if config['dropbox_local_path'] == '':
