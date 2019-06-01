@@ -32,11 +32,11 @@ python drupebox.py
 ```
 The drupebox script will start an authorization process with Dropbox.
 * Click the link to dropbox that will appear in the terminal (or go to the link using a different computer).
-* Log into Dropbox and approve the authorization for the app
-* Dropbox will give you a code to paste back into the terminal window to complete the authorization
-* Tell drupebox the folder on your computer to keep in sync with dropbox, or press enter to select the default folder /home/pi/Dropbox/
+* Log into Dropbox and approve the authorization for the app. The app will only have authorization to a single folder in Dropbox - the newly created "Drupebox" folder.
+* Dropbox will give you a code to paste back into the terminal window to complete the authorization. This code will not leave your Raspberry Pi.
+* Tell drupebox the folder on your computer to keep in sync with dropbox, or press enter to select the default folder /home/pi/Dropbox/. Your Dropbox folder on your Raspberry Pi will then sync with the Drupbox folder.
 
-Drupebox will then do an upload of what is in that folder to Dropbox.
+Drupebox will then do an upload of what is in that folder to the newly created Drupebox folder in your Dropbox.
 
 When the Drupebox script is run again, it will download/upload the local/remote additions/changes/deletions to keep the folder on your computer and the Dropbox folder in sync.
 
