@@ -115,7 +115,7 @@ def determine_deleted_files(tree_now, tree_last):
 
 
 def upload(client, local_file_path, remote_file_path):
-    print(('uuu', local_file_path))
+    print('uuu', local_file_path)
     f = open(local_file_path, 'rb')
     import dropbox #FIXME this must not be necessary
     client.files_upload(f.read(), remote_file_path, mute=True, mode=dropbox.files.WriteMode("overwrite",None))
@@ -123,7 +123,7 @@ def upload(client, local_file_path, remote_file_path):
 
 
 def download(client, remote_file_path, local_file_path):
-    print(('ddd', remote_file_path))
+    print('ddd', remote_file_path)
     client.files_download_to_file(local_file_path, remote_file_path)
     #(f, metadata) = client.get_file_and_metadata(remote_file_path)
     #out = open(local_file_path, 'wb')
@@ -182,13 +182,13 @@ def fix_local_time(client, remote_file_path):
 def skip(local_file_path):
     local_item = local_file_path.split('/')[-1]
     if local_item[0:len('.fuse_hidden')] == '.fuse_hidden':
-        print('ignore fuse hidden files')
+        fyi('ignore fuse hidden files')
         return True
     if local_item[-len('.pyc'):] == '.pyc':
-        print('ignore .pyc files')
+        fyi('ignore .pyc files')
         return True
     if local_item[-len('__pycache__'):] == '__pycache__':
-        print('ignore __pycache__')
+        fyi('ignore __pycache__')
         return True
     else:
         try:
