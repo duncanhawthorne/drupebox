@@ -1,8 +1,17 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-
 from libs_drupe import *
+
+#HACK to work around python-requests being an incompatible version for Debian versions lower than 10. 
+try: #Only has any effect for Debian versions lower than 10.
+    if float(open("/etc/debian_version").read()[:-1]) < 10: #Only has any effect for Debian versions lower than 10.
+        import sys
+        sys.path.append(os.path.join(os.path.dirname(__file__), "legacy"))
+except: 
+    pass
+#END OF HACK 
+ 
 import dropbox
 
 config = get_config()
