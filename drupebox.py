@@ -10,7 +10,7 @@ config = get_config()
 max_file_size = int(config['max_file_size'])
 dropbox_local_path = config['dropbox_local_path']
 
-db_client = dropbox.Dropbox(app_key = app_key, app_secret = app_secret, oauth2_refresh_token = config['refresh_token'])
+db_client = dropbox.Dropbox(app_key = app_key, oauth2_refresh_token = config['refresh_token'])
 
 def action_locally_deleted_files():
     fyi('Actioning locally deleted files')
