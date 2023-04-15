@@ -9,6 +9,9 @@ from builtins import input
 from datetime import datetime
 tmp_file_location = '/dev/shm/'
 
+# Get your app key and secret from the Dropbox developer website
+app_key = '1skff241na3x0at'
+app_secret = 'srd8w4mvppiq9vg'
 
 def fyi(text):
     print('    ' + text)
@@ -29,20 +32,16 @@ def get_config_real():
         config.filename = config_filename
         import dropbox
 
-        # Get your app key and secret from the Dropbox developer website
-
-        app_key = '1skff241na3x0at'
-        app_secret = 'srd8w4mvppiq9vg'
-
         flow = dropbox.DropboxOAuth2FlowNoRedirect(app_key,
-                app_secret)
+                app_secret, token_access_type='offline')
         authorize_url = flow.start()
         print(('1. Go to: ' + authorize_url))
         print('2. Click "Allow" (you might have to log in first)')
         print('3. Copy the authorization code.')
         code = input('Enter the authorization code here: ').strip()
         result = flow.finish(code)
-        (config['access_token'], config['user_id']) = result.access_token, result.user_id
+
+        (config['access_token'], config['user_id'], config['refresh_token']) = result.access_token, result.user_id, result.refresh_token
         config['dropbox_local_path'] = \
             input('Enter dropbox local path (or press enter for '
                       + os.path.join(os.getenv('HOME'), 'Dropbox')
