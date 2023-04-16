@@ -1,11 +1,8 @@
-from __future__ import print_function
-from builtins import str
-from builtins import bytes
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 import os
 import time
-from builtins import input
+import dropbox
 from datetime import datetime
 tmp_file_location = '/dev/shm/'
 
@@ -29,7 +26,6 @@ def get_config_real():
     if not path_exists(config_filename):
         config = ConfigObj()
         config.filename = config_filename
-        import dropbox
 
         flow = dropbox.DropboxOAuth2FlowNoRedirect(app_key,
                 use_pkce=True, token_access_type='offline')
@@ -115,24 +111,14 @@ def determine_deleted_files(tree_now, tree_last):
 def upload(client, local_file_path, remote_file_path):
     print('uuu', local_file_path)
     f = open(local_file_path, 'rb')
-    import dropbox #FIXME this must not be necessary
     client.files_upload(f.read(), remote_file_path, mute=True, mode=dropbox.files.WriteMode("overwrite",None))
-    #response = client.put_file(remote_file_path, f, overwrite=True)
-
 
 def download(client, remote_file_path, local_file_path):
     print('ddd', remote_file_path)
     client.files_download_to_file(local_file_path, remote_file_path)
-    #(f, metadata) = client.get_file_and_metadata(remote_file_path)
-    #out = open(local_file_path, 'wb')
-    #out.write(f.read())
-    #out.close()
-
-
-    # print metadata
 
 def unix_time(timer):
-    return time.mktime(timer.timetuple()) # time.mktime(datetime.strptime(timer, '%a, %d %b %Y %H:%M:%S +0000').timetuple())
+    return time.mktime(timer.timetuple())
 
 
 def readable_time(timepoint):
@@ -168,7 +154,7 @@ def fix_local_time(client, remote_file_path):
     extra_path = '/'.join(remote_path.split('/')[0:-1])
     info('fix local time on ' + remote_file_path)
 
-    tmp_folder = client.files_list_folder(fp(extra_path)).entries #client.metadata('/' + extra_path)['contents']
+    tmp_folder = client.files_list_folder(fp(extra_path)).entries
     for tmp_item in tmp_folder:
         if tmp_item.path_display == remote_path:
             break  # found it
@@ -202,8 +188,6 @@ def local_item_not_found_at_remote(remote_folder, remote_file_path):
     extra_path = '/'.join(remote_path.split('/')[0:-1])
     remote_folder_path = extra_path
 
-    # remote_folder = client.metadata('/'+remote_folder_path)['contents']
-
     unnaccounted_local_file = True
     for tmp_item in remote_folder:
         if tmp_item.path_display == remote_file_path:
@@ -218,13 +202,10 @@ def remote_item_modified_with_deleted(client, remote_file_path):
     remote_folder_with_deleted = client.files_list_folder(fp(remote_folder_path),include_deleted=True).entries # client.metadata('/' + remote_folder_path, include_deleted=True)['contents']
     folder_with_deleted = remote_folder_with_deleted
     remote_time = 0
-    import dropbox #FIXME this must not be necessary
     for unn_item in folder_with_deleted:
         print(unn_item)
         if unn_item.path_display == remote_file_path:
-            if isinstance(unn_item, dropbox.files.DeletedMetadata): # unn_item.tag == "deleted": #'is_deleted' in unn_item and unn_item['is_deleted'] == True:
+            if isinstance(unn_item, dropbox.files.DeletedMetadata):
                 remote_time = unix_time(unn_item.client_modified)
                 break
     return remote_time
-
-

@@ -1,9 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
 from libs_drupe import *
-
-import dropbox
 
 config = get_config()
 
@@ -35,7 +32,7 @@ def action_folder(remote_folder_path):
             return
     local_folder_path = dropbox_local_path + remote_folder_path
 
-    remote_folder = db_client.files_list_folder(fp(remote_folder_path)).entries # db_client.metadata('/' + remote_folder_path)['contents']
+    remote_folder = db_client.files_list_folder(fp(remote_folder_path)).entries
     remote_folder_checked_time = time.time()
     for remote_item in remote_folder:
         if time.time() > remote_folder_checked_time + 60:
@@ -58,7 +55,7 @@ def action_folder(remote_folder_path):
             else:
                 download(db_client, remote_file_path, local_file_path)
                 fix_local_time(db_client, remote_file_path)
-            
+
         elif not isinstance(remote_item, dropbox.files.FolderMetadata) \
             and local_item_modified_time(local_file_path) > unix_time(remote_item.client_modified):
 
@@ -120,4 +117,3 @@ action_locally_deleted_files()
 fyi('Actioning all other local and remote files changes')
 action_folder('')
 print('Sync complete at ', readable_time(time.time()))
-
