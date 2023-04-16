@@ -174,13 +174,16 @@ def skip(local_file_path):
     if local_item[-len('__pycache__'):] == '__pycache__':
         fyi('ignore __pycache__')
         return True
-    else:
-        try:
-            local_time = local_item_modified_time(local_file_path)
-        except:
-            print(('crash on local time check on', local_item))
-            return True
-        return False
+    if local_item in ['.DS_Store', '._.DS_Store', 'DG1__DS_DIR_HDR', 'DG1__DS_VOL_HDR']:
+        fyi('ignore '+local_item)
+        return True
+
+    try:
+        local_time = local_item_modified_time(local_file_path)
+    except:
+        print(('crash on local time check on', local_item))
+        return True
+    return False
 
 
 def local_item_not_found_at_remote(remote_folder, remote_file_path):
