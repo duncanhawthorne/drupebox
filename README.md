@@ -16,7 +16,7 @@ Install dependencies for the script
 sudo apt-get install git python3-configobj python3-dropbox
 ```
 
-Download the Drupbox script:
+Download the Drupebox script:
 ```
 git clone https://github.com/duncanhawthorne/drupebox.git
 ```
