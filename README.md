@@ -15,7 +15,7 @@ Install dependencies for Drupebox
 sudo apt-get install git python3-configobj python3-dropbox
 ```
 
-Download Drupebox into the Drupebox script folder:
+Download Drupebox into the Drupebox script folder
 ```
 git clone https://github.com/duncanhawthorne/drupebox.git
 ```
@@ -34,7 +34,7 @@ Authorise Drupbox to sync your Dropbox folder
 * Your selected folder on your Raspberry Pi will then sync with the Drupebox folder.
 
 Keep your folder in sync
-* When Drupebo is first run, Drupebox will do an upload of the files in the folder on your Raspberry Pi to the newly created Drupebox folder in your Dropbox.
+* When Drupebox is first run, Drupebox will do an upload of the files in the folder on your Raspberry Pi to the newly created Drupebox folder in your Dropbox.
 * When you run Drupebox again, it will download/upload the local/remote additions/changes/deletions to keep the folder on your Raspberry Pi and the Drupebox folder in Dropbox in sync. Files will be synced only where changes have been made.
 * The Drupebox script can be run from a cron job to keep your folder constantly in sync. 
 
