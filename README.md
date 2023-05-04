@@ -36,7 +36,7 @@ Drupebox will start an authorization process with Dropbox.
 * Click the link to dropbox that will appear in the terminal (or visit that link using a different computer).
 * Log into Dropbox and approve the authorization for the app. The app will only have authorization to a single App folder in Dropbox - the newly created "Drupebox" folder within the Apps folder. Drupebox will have no access to the rest of your Dropbox
 * Dropbox will give you a code to paste back into the terminal window to complete the authorization. This code will not leave your Raspberry Pi.
-* Tell drupebox the folder on your computer to keep in sync with Dropbox, or press enter to select the default folder /home/pi/Dropbox/. Your folder on your Raspberry Pi will then sync with the Drupebox folder.
+* Tell Drupebox the folder on your computer to keep in sync with Dropbox, or press enter to select the default folder /home/pi/Dropbox/. Your folder on your Raspberry Pi will then sync with the Drupebox folder.
 
 Drupebox will then do an upload of the files in that folder to the newly created Drupebox folder in your Dropbox.
 
