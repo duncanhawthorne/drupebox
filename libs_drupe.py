@@ -23,7 +23,7 @@ def info(text):
 def get_config_real():
     from configobj import ConfigObj
 
-    if not os.path.exists(os.path.join(os.getenv("HOME"), ".config")):
+    if not path_exists(os.path.join(os.getenv("HOME"), ".config")):
         os.makedirs(os.path.join(os.getenv("HOME"), ".config"))
     config_filename = os.path.join(os.getenv("HOME"), ".config", "drupebox")
     if not path_exists(config_filename):
@@ -153,11 +153,7 @@ def readable_time(timepoint):
 
 
 def path_exists(path):
-    try:
-        os.stat(path)
-        return True
-    except:
-        return False
+    return os.path.exists(path)
 
 
 def local_item_modified_time(local_file_path):
