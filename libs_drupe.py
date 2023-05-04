@@ -5,8 +5,9 @@ import time
 import dropbox
 from datetime import datetime
 
-tmp_file_location = "/dev/shm/"
+drupebox_cache_store_folder = "/dev/shm/"
 
+# To customise this code, change the app key below
 # Get your app key from the Dropbox developer website for your app
 app_key = "1skff241na3x0at"
 
@@ -60,7 +61,7 @@ def get_config_real():
         config["max_file_size"] = 10000000
         config["excluded_paths"] = [
             '"/home/pi/SUPER SECRET LOCATION 1"',
-            '"/home/pi/SUPERSECRET LOCATION 2"',
+            '"/home/pi/SUPER SECRET LOCATION 2"',
         ]
         config.write()
 
@@ -79,7 +80,7 @@ get_config.cache = ""
 
 def dump(text, name):
     text = str(text)
-    with open(tmp_file_location + name, "wb") as f:
+    with open(drupebox_cache_store_folder + name, "wb") as f:
         f.write(bytes(text.encode()))
 
 
@@ -105,7 +106,9 @@ def store_tree(tree):
 
 def load_tree():
     try:
-        last_tree = open(tmp_file_location + "drupebox_last_seen_files", "r").read()
+        last_tree = open(
+            drupebox_cache_store_folder + "drupebox_last_seen_files", "r"
+        ).read()
     except:
         last_tree = ""
     last_tree = last_tree.split("\n")
@@ -175,19 +178,25 @@ def fp(path):
 
 
 def fix_local_time(client, remote_file_path):
-    remote_path = remote_file_path
-    extra_path = "/".join(remote_path.split("/")[0:-1])
+    remote_folder_path = "/".join(
+        remote_file_path.split("/")[0:-1]
+    )  # path excluding file, i.e. just to the folder
     info("fix local time on " + remote_file_path)
 
-    tmp_folder = client.files_list_folder(fp(extra_path)).entries
-    for tmp_item in tmp_folder:
-        if tmp_item.path_display == remote_path:
-            break  # found it
-    tmp_time = tmp_item.client_modified
-    os.utime(
-        get_config()["dropbox_local_path"] + remote_path,
-        (int(unix_time(tmp_time)), int(unix_time(tmp_time))),
-    )
+    remote_folder = client.files_list_folder(fp(remote_folder_path)).entries
+    for remote_file in remote_folder:
+        if remote_file.path_display == remote_file_path:
+            # matched the file we are looking for
+            file_modified_time = remote_file.client_modified
+            local_file_path = get_config()["dropbox_local_path"] + remote_file_path
+            os.utime(
+                local_file_path,
+                (
+                    int(unix_time(file_modified_time)),
+                    int(unix_time(file_modified_time)),
+                ),
+            )
+            return  # found file so no further looping required
 
 
 def skip(local_file_path):
@@ -219,8 +228,8 @@ def local_item_not_found_at_remote(remote_folder, remote_file_path):
     remote_folder_path = extra_path
 
     unnaccounted_local_file = True
-    for tmp_item in remote_folder:
-        if tmp_item.path_display == remote_file_path:
+    for remote_item in remote_folder:
+        if remote_item.path_display == remote_file_path:
             unnaccounted_local_file = False
     return unnaccounted_local_file
 
@@ -231,7 +240,7 @@ def remote_item_modified_with_deleted(client, remote_file_path):
     remote_folder_path = extra_path
     remote_folder_with_deleted = client.files_list_folder(
         fp(remote_folder_path), include_deleted=True
-    ).entries  # client.metadata('/' + remote_folder_path, include_deleted=True)['contents']
+    ).entries
     folder_with_deleted = remote_folder_with_deleted
     remote_time = 0
     for unn_item in folder_with_deleted:
