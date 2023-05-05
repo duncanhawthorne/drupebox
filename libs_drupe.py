@@ -19,8 +19,10 @@ def note(text):
 def fyi(text):
     print("    " + text)
 
+
 def fyi_ignore(text):
     print("        ignore " + text)
+
 
 def get_config_real():
     from configobj import ConfigObj
