@@ -5,7 +5,7 @@ import time
 import dropbox
 from datetime import datetime
 
-drupebox_cache_store_folder = "/dev/shm/"
+drupebox_cache_store_path = "/dev/shm/drupebox_last_seen_files"
 
 # To customise this code, change the app key below
 # Get your app key from the Dropbox developer website for your app
@@ -16,7 +16,7 @@ def fyi(text):
     print("    " + text)
 
 
-def info(text):
+def note(text):
     print(">>> " + text)
 
 
@@ -78,13 +78,7 @@ def get_config():
 get_config.cache = ""
 
 
-def dump(text, name):
-    text = str(text)
-    with open(drupebox_cache_store_folder + name, "wb") as f:
-        f.write(bytes(text.encode()))
-
-
-def get_tree():
+def get_live_tree():
     tree = []
     for (root, dirs, files) in os.walk(
         get_config()["dropbox_local_path"], topdown=True, followlinks=True
@@ -101,22 +95,19 @@ def get_tree():
 
 def store_tree(tree):
     tree = "\n".join(tree)
-    dump(tree, "drupebox_last_seen_files")
+    with open(drupebox_cache_store_path, "wb") as f:
+        f.write(bytes(tree.encode()))
 
 
 def load_tree():
-    try:
-        last_tree = open(
-            drupebox_cache_store_folder + "drupebox_last_seen_files", "r"
-        ).read()
-    except:
-        last_tree = ""
-    last_tree = last_tree.split("\n")
-
+    if os.path.exists(drupebox_cache_store_path):
+        last_tree = open(drupebox_cache_store_path, "r").read().split("\n")
+    else:
+        last_tree = [""]
     return last_tree
 
 
-def determine_deleted_files(tree_now, tree_last):
+def determine_locally_deleted_files(tree_now, tree_last):
     deleted = []
     if tree_last == [""]:
         return []
@@ -142,12 +133,12 @@ def download(client, remote_file_path, local_file_path):
     client.files_download_to_file(local_file_path, remote_file_path)
 
 
-def unix_time(timer):
-    return time.mktime(timer.timetuple())
+def unix_time(readable_time):
+    return time.mktime(readable_time.timetuple())
 
 
-def readable_time(timepoint):
-    return datetime.fromtimestamp(float(timepoint)).strftime(
+def readable_time(unix_time):
+    return datetime.fromtimestamp(float(unix_time)).strftime(
         "%a, %d %b %Y %H:%M:%S +0000"
     )
 
@@ -177,7 +168,7 @@ def fix_local_time(client, remote_file_path):
     remote_folder_path = "/".join(
         remote_file_path.split("/")[0:-1]
     )  # path excluding file, i.e. just to the folder
-    info("fix local time on " + remote_file_path)
+    note("fix local time on " + remote_file_path)
 
     remote_folder = client.files_list_folder(fp(remote_folder_path)).entries
     for remote_file in remote_folder:
