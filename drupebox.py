@@ -13,7 +13,7 @@ db_client = dropbox.Dropbox(
 
 
 def action_locally_deleted_files():
-    fyi("Actioning locally deleted files")
+    fyi("Syncing any locally deleted files since last Drupebox run")
     file_tree_from_last_run = load_tree()
     file_tree_now = get_live_tree()
     locally_deleted_files = determine_locally_deleted_files(
@@ -133,7 +133,8 @@ def action_folder(remote_folder_path):
                 action_folder(remote_folder_path + sub_folder + "/")
 
 
+print("Drupebox sync started at", readable_time(time.time()))
 action_locally_deleted_files()
-fyi("Actioning all other local and remote files changes")
+fyi("Syncing all other local and remote files changes")
 action_folder("")
-print("Sync complete at ", readable_time(time.time()))
+print("Drupebox sync complete at", readable_time(time.time()))

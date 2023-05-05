@@ -12,13 +12,15 @@ drupebox_cache_store_path = "/dev/shm/drupebox_last_seen_files"
 app_key = "1skff241na3x0at"
 
 
-def fyi(text):
-    print("    " + text)
-
-
 def note(text):
     print(">>> " + text)
 
+
+def fyi(text):
+    print("    " + text)
+
+def fyi_ignore(text):
+    print("        ignore " + text)
 
 def get_config_real():
     from configobj import ConfigObj
@@ -189,16 +191,16 @@ def fix_local_time(client, remote_file_path):
 def skip(local_file_path):
     local_item = local_file_path.split("/")[-1]
     if local_item[0 : len(".fuse_hidden")] == ".fuse_hidden":
-        fyi("ignore fuse hidden files")
+        fyi_ignore("fuse hidden files")
         return True
     if local_item[-len(".pyc") :] == ".pyc":
-        fyi("ignore .pyc files")
+        fyi_ignore(".pyc files")
         return True
     if local_item[-len("__pycache__") :] == "__pycache__":
-        fyi("ignore __pycache__")
+        fyi_ignore("__pycache__")
         return True
     if local_item in [".DS_Store", "._.DS_Store", "DG1__DS_DIR_HDR", "DG1__DS_VOL_HDR"]:
-        fyi("ignore " + local_item)
+        fyi_ignore(local_item)
         return True
 
     try:
