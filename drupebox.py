@@ -14,7 +14,6 @@ db_client = dropbox.Dropbox(
 
 def action_locally_deleted_files():
     fyi("Syncing any locally deleted files since last Drupebox run")
-    file_tree_from_last_run = load_tree()
     file_tree_now = get_live_tree()
     locally_deleted_files = determine_locally_deleted_files(
         file_tree_now, file_tree_from_last_run
@@ -30,7 +29,6 @@ def action_locally_deleted_files():
                 "Tried to delete a file on dropbox, but it was not there "
                 + locally_deleted_file
             )
-    store_tree(file_tree_now)
 
 
 def action_folder(remote_folder_path):
@@ -55,7 +53,7 @@ def action_folder(remote_folder_path):
             or not isinstance(remote_item, dropbox.files.FolderMetadata)
             and unix_time(remote_item.client_modified)
             > local_item_modified_time(local_file_path)
-        ):  # unix_time(remote_item['modified']) > local_item_modified_time(local_file_path):
+        ):
             note(
                 "Found new file on remote, or remote file has been updated - downloading "
                 + remote_file_path
@@ -97,21 +95,20 @@ def action_folder(remote_folder_path):
             continue
         if local_item_not_found_at_remote(remote_folder, remote_file_path):
             local_time = local_item_modified_time(local_file_path)
-            remote_time_of_deleted_file = False  # remote_item_modified_with_deleted(db_client, remote_file_path) #Can't do this test currently, so blanking, and never do local delete following delete on server
+            remote_time_of_deleted_file = time_from_last_run  # Set all deleted files with earliest possible deletion time, i.e that of last Drupebox run
             if (
-                False and remote_time_of_deleted_file > local_time
-            ):  # Can't do this test currently, so blanking, and never do local delete following delete on server
+                ok_to_delete()
+                and remote_time_of_deleted_file > local_time
+                and remote_file_path in remotely_deleted_files
+            ):
                 note(
-                    "Unnaccounted file - Modified time for deleted remote file is latest - delete "
+                    "Unnaccounted file - Modified time for deleted remote file is later than any local edits so delete "
                     + remote_file_path
                 )
-                if os.path.isdir(local_file_path):
-                    os.rmdir(local_file_path)
-                else:
-                    os.remove(local_file_path)
+                delete(local_file_path)
             else:
                 note(
-                    "Unnaccounted file - Local is latest to modified - upload "
+                    "Unnaccounted file - Local is latest to be modified so upload "
                     + remote_file_path
                 )
                 if os.path.isdir(local_file_path):
@@ -134,7 +131,17 @@ def action_folder(remote_folder_path):
 
 
 print("Drupebox sync started at", readable_time(time.time()))
+file_tree_from_last_run = load_tree()
+cursor_from_last_run, time_from_last_run = load_cursor()
+
+remotely_deleted_files = determine_remotely_deleted_files(
+    db_client, cursor_from_last_run
+)
 action_locally_deleted_files()
+
 fyi("Syncing all other local and remote files changes")
 action_folder("")
+
+store_cursor(db_client)
+store_tree(get_live_tree())
 print("Drupebox sync complete at", readable_time(time.time()))

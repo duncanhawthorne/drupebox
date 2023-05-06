@@ -6,6 +6,7 @@ import dropbox
 from datetime import datetime
 
 drupebox_cache_store_path = "/dev/shm/drupebox_last_seen_files"
+drupebox_cursor_path = "/dev/shm/drupebox_cursor"
 
 # To customise this code, change the app key below
 # Get your app key from the Dropbox developer website for your app
@@ -67,6 +68,7 @@ def get_config_real():
             '"/home/pi/SUPER SECRET LOCATION 1"',
             '"/home/pi/SUPER SECRET LOCATION 2"',
         ]
+        config["really_delete_local_files"] = False
         config.write()
 
     config = ConfigObj(config_filename)
@@ -225,19 +227,56 @@ def local_item_not_found_at_remote(remote_folder, remote_file_path):
     return unnaccounted_local_file
 
 
-def remote_item_modified_with_deleted(client, remote_file_path):
-    remote_path = remote_file_path
-    extra_path = "/".join(remote_path.split("/")[0:-1])
-    remote_folder_path = extra_path
-    remote_folder_with_deleted = client.files_list_folder(
-        fp(remote_folder_path), include_deleted=True
-    ).entries
-    folder_with_deleted = remote_folder_with_deleted
-    remote_time = 0
-    for unn_item in folder_with_deleted:
-        print(unn_item)
-        if unn_item.path_display == remote_file_path:
-            if isinstance(unn_item, dropbox.files.DeletedMetadata):
-                remote_time = unix_time(unn_item.client_modified)
-                break
-    return remote_time
+def store_cursor(db_client):
+    cursor = db_client.files_list_folder_get_latest_cursor("", recursive=True).cursor
+    result = cursor + "\n" + str(time.time())
+    with open(drupebox_cursor_path, "wb") as f:
+        f.write(bytes(result.encode()))
+
+
+def load_cursor():
+    if os.path.exists(drupebox_cursor_path):
+        cursor = open(drupebox_cursor_path, "r").read().split("\n")
+    else:
+        cursor = ["", "0"]
+    cursor = [cursor[0], float(cursor[1])]
+    return cursor
+
+
+def determine_remotely_deleted_files(db_client, cursor):
+    fyi("Scanning for any remotely deleted files since last Drupebox run")
+    deleted_files = []
+    if cursor != "":
+        deltas = db_client.files_list_folder_continue(cursor).entries
+        for delta in deltas:
+            if isinstance(delta, dropbox.files.DeletedMetadata):
+                deleted_files.append(delta.path_display)
+    if deleted_files != []:
+        note(
+            "The following files were deleted on Dropbox since last run. Drupebox may now delete these files, unless recent edits made locally"
+        )
+        for deleted_file in deleted_files:
+            note(deleted_file)
+    return deleted_files
+
+
+def ok_to_delete():
+    if get_config()["really_delete_local_files"] != "True":
+        note("Drupebox not set to delete local files, so force reupload local file")
+        return False
+    else:
+        return True
+
+
+def delete(local_file_path):
+    if ok_to_delete():  # safety check that should be impossible to get to
+        if os.path.isdir(local_file_path):
+            # delete folder and any sub files and folders
+            for root, dirs, files in os.walk(local_file_path, topdown=False):
+                for name in files:
+                    os.remove(os.path.join(root, name))
+                for name in dirs:
+                    os.rmdir(os.path.join(root, name))
+            os.rmdir(local_file_path)
+        else:
+            os.remove(local_file_path)
