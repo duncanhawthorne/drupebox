@@ -23,7 +23,7 @@ def fyi(text):
 
 
 def fyi_ignore(text):
-    print("        ignore " + text)
+    print("     -> ignore " + text)
 
 
 def get_config_real():
@@ -125,37 +125,56 @@ def determine_locally_deleted_files(tree_now, tree_last):
 
 
 def upload(local_file_path, remote_file_path):
-    print("uuu", local_file_path)
-    f = open(local_file_path, "rb")
-    db_client.files_upload(
-        f.read(),
-        remote_file_path,
-        mute=True,
-        mode=dropbox.files.WriteMode("overwrite", None),
-    )
+    if os.path.getsize(local_file_path) < int(config["max_file_size"]):
+        print("uuu", remote_file_path)
+        f = open(local_file_path, "rb")
+        db_client.files_upload(
+            f.read(),
+            remote_file_path,
+            mute=True,
+            mode=dropbox.files.WriteMode("overwrite", None),
+        )
+        fix_local_time(remote_file_path)
+    else:
+        note("File above max size, ignoring: " + remote_file_path)
 
 
-def download(remote_file_path, local_file_path):
+def create_remote_folder(remote_file_path):
+    print("ccc", remote_file_path)
+    db_client.files_create_folder(remote_file_path)
+
+
+def download_folder(remote_file_path, local_file_path):
+    print("ddd", remote_file_path)
+    if not path_exists(local_file_path):
+        os.makedirs(local_file_path)
+    else:
+        "Modification time on a folder does not matter - no action"
+
+
+def download_file(remote_file_path, local_file_path):
     print("ddd", remote_file_path)
     if os.path.exists(local_file_path):
         send2trash(local_file_path)  # so no files permanently deleted locally
     db_client.files_download_to_file(local_file_path, remote_file_path)
+    fix_local_time(remote_file_path)
 
 
 def local_delete(local_file_path):
-    if ok_to_delete():  # safety check that should be impossible to get to
-        print("!!!", local_file_path)
+    remote_file_path = "/" + local_file_path[len(dropbox_local_path) :]
+    if config_ok_to_delete():  # safety check that should be impossible to get to
+        print("!!!", remote_file_path)
         send2trash(local_file_path)
 
 
-def remote_delete(locally_deleted_file):
-    print("!!!", locally_deleted_file)
+def remote_delete(local_file_path):
+    remote_file_path = "/" + local_file_path[len(dropbox_local_path) :]
+    print("!!!", remote_file_path)
     try:
-        db_client.files_delete("/" + locally_deleted_file[len(dropbox_local_path) :])
+        db_client.files_delete(remote_file_path)
     except:
         note(
-            "Tried to delete a file on dropbox, but it was not there "
-            + locally_deleted_file
+            "Tried to delete file on dropbox, but it was not there"
         )
 
 
@@ -169,12 +188,20 @@ def readable_time(unix_time):
     )
 
 
+def is_file(remote_item):
+    return not isinstance(remote_item, dropbox.files.FolderMetadata)
+
+
 def path_exists(path):
     return os.path.exists(path)
 
 
-def local_item_modified_time(local_file_path):
+def local_modified_time(local_file_path):
     return os.path.getmtime(local_file_path)
+
+
+def remote_modified_time(remote_item):
+    return unix_time(remote_item.client_modified)
 
 
 def fp(path):
@@ -194,7 +221,7 @@ def fix_local_time(remote_file_path):
     remote_folder_path = "/".join(
         remote_file_path.split("/")[0:-1]
     )  # path excluding file, i.e. just to the folder
-    note("Fix local time for file " + remote_file_path)
+    note("Fix local time for file")
 
     remote_folder = db_client.files_list_folder(fp(remote_folder_path)).entries
     for remote_file in remote_folder:
@@ -228,7 +255,7 @@ def skip(local_file_path):
         return True
 
     try:
-        local_time = local_item_modified_time(local_file_path)
+        local_time = local_modified_time(local_file_path)
     except:
         print("Crash on local time check on", local_item)
         return True
@@ -273,14 +300,14 @@ def determine_remotely_deleted_files(cursor):
                 deleted_files.append(delta.path_display)
     if deleted_files != []:
         note(
-            "The following files were deleted on Dropbox since last run. Drupebox may now delete these files, unless recent edits made locally"
+            "The following files were deleted on Dropbox since last run"
         )
         for deleted_file in deleted_files:
             note(deleted_file)
     return deleted_files
 
 
-def ok_to_delete():
+def config_ok_to_delete():
     if get_config()["really_delete_local_files"] != "True":
         note("Drupebox not set to delete local files, so force reupload local file")
         return False
@@ -290,7 +317,6 @@ def ok_to_delete():
 
 config = get_config()
 
-max_file_size = int(config["max_file_size"])
 dropbox_local_path = config["dropbox_local_path"]
 
 db_client = dropbox.Dropbox(

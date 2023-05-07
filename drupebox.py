@@ -10,12 +10,12 @@ def action_locally_deleted_files():
         file_tree_now, file_tree_from_last_run
     )
     for locally_deleted_file in locally_deleted_files:
-        note("Found local file deleted, so delete on dropbox " + locally_deleted_file)
+        note("Found locally deleted file, so delete on Dropbox")
         remote_delete(locally_deleted_file)
 
 
 def action_folder(remote_folder_path):
-    fyi(remote_folder_path)
+    fyi("/" + remote_folder_path)
     for excluded_path in config["excluded_paths"]:
         if remote_folder_path[0 : len(excluded_path)] == excluded_path:
             note("Path excluded")
@@ -24,6 +24,8 @@ def action_folder(remote_folder_path):
 
     remote_folder = db_client.files_list_folder(fp(remote_folder_path)).entries
     remote_folder_checked_time = time.time()
+
+    # Go through remote items
     for remote_item in remote_folder:
         if time.time() > remote_folder_checked_time + 60:
             note("Last checked in with server over 60 seconds ago, refreshing")
@@ -33,40 +35,30 @@ def action_folder(remote_folder_path):
         local_file_path = dropbox_local_path + remote_file_path[1:]
         if (
             not path_exists(local_file_path)
-            or not isinstance(remote_item, dropbox.files.FolderMetadata)
-            and unix_time(remote_item.client_modified)
-            > local_item_modified_time(local_file_path)
+            or is_file(remote_item)
+            and remote_modified_time(remote_item) > local_modified_time(local_file_path)
         ):
-            note(
-                "Found new file on remote, or remote file has been updated - downloading "
-                + remote_file_path
-            )
-            if isinstance(remote_item, dropbox.files.FolderMetadata):
-                if not path_exists(local_file_path):
-                    os.makedirs(local_file_path)
-                else:
-                    "Modification time on a folder does not matter - no action"
-
+            if path_exists(local_file_path):
+                note("Found new file on remote Dropbox, so download")
             else:
-                download(remote_file_path, local_file_path)
-                fix_local_time(remote_file_path)
+                note("Found updated file on remote Dropbox, so download")
 
-        elif not isinstance(
-            remote_item, dropbox.files.FolderMetadata
-        ) and local_item_modified_time(local_file_path) > unix_time(
-            remote_item.client_modified
-        ):
+            if is_file(remote_item):
+                download_file(remote_file_path, local_file_path)
+            else:
+                download_folder(remote_file_path, local_file_path)
 
-            if not isinstance(remote_item, dropbox.files.FolderMetadata):
-                note("Local file has been updated - uploading " + remote_file_path)
-                if os.path.getsize(local_file_path) < max_file_size:
-                    upload(local_file_path, remote_file_path)
-                    fix_local_time(remote_file_path)
-                else:
-                    note("File above max size, ignoring: " + remote_file_path)
+        elif is_file(remote_item) and local_modified_time(
+            local_file_path
+        ) > remote_modified_time(remote_item):
+
+            if is_file(remote_item):
+                note("Local file has been updated, so upload")
+                upload(local_file_path, remote_file_path)
             else:
                 "Modification time on a folder does not matter - no action"
 
+    # Go throgh local items
     for local_item in os.listdir(local_folder_path):
         if time.time() > remote_folder_checked_time + 60:
             note("Last checked in with server over 60 seconds ago, refreshing")
@@ -77,35 +69,21 @@ def action_folder(remote_folder_path):
         if skip(local_file_path):
             continue
         if local_item_not_found_at_remote(remote_folder, remote_file_path):
-            local_time = local_item_modified_time(local_file_path)
-            remote_time_of_deleted_file = time_from_last_run  # Set all deleted files with earliest possible deletion time, i.e that of last Drupebox run
             if (
-                ok_to_delete()
-                and remote_time_of_deleted_file > local_time
+                config_ok_to_delete()
+                and time_from_last_run > local_modified_time(local_file_path)
+                and time_from_last_run > time.time() - 60 * 60 * 2
                 and remote_file_path in remotely_deleted_files
             ):
-                note(
-                    "Unnaccounted file - Modified time for deleted remote file is later than any local edits so delete "
-                    + local_file_path
-                )
+                note("Found local item that is deleted on remote Dropbox, so delete")
                 local_delete(local_file_path)
             else:
-                note(
-                    "Unnaccounted file - Local is latest to be modified so upload "
-                    + remote_file_path
-                )
                 if os.path.isdir(local_file_path):
-                    note(
-                        "New file is a folder, dont upload it but just create a folder directly on dropbox - subfiles will get picked up later "
-                        + remote_file_path
-                    )
-                    db_client.files_create_folder(remote_file_path)
+                    note("Found local folder that isn't on remote Dropbox, so create")
+                    create_remote_folder(remote_file_path)
                 else:
-                    if os.path.getsize(local_file_path) < max_file_size:
-                        upload(local_file_path, remote_file_path)
-                        fix_local_time(remote_file_path)
-                    else:
-                        note("File above max size, ignoring: " + remote_file_path)
+                    note("Found local file that isn't on remote Dropbox, so upload")
+                    upload(local_file_path, remote_file_path)
 
     for sub_folder in os.listdir(local_folder_path):
         if os.path.isdir(local_folder_path + sub_folder):
