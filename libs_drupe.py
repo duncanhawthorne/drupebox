@@ -3,6 +3,7 @@
 import os
 import time
 import dropbox
+from send2trash import send2trash
 from datetime import datetime
 
 drupebox_cache_store_path = "/dev/shm/drupebox_last_seen_files"
@@ -123,10 +124,10 @@ def determine_locally_deleted_files(tree_now, tree_last):
     return deleted
 
 
-def upload(client, local_file_path, remote_file_path):
+def upload(local_file_path, remote_file_path):
     print("uuu", local_file_path)
     f = open(local_file_path, "rb")
-    client.files_upload(
+    db_client.files_upload(
         f.read(),
         remote_file_path,
         mute=True,
@@ -134,9 +135,28 @@ def upload(client, local_file_path, remote_file_path):
     )
 
 
-def download(client, remote_file_path, local_file_path):
+def download(remote_file_path, local_file_path):
     print("ddd", remote_file_path)
-    client.files_download_to_file(local_file_path, remote_file_path)
+    if os.path.exists(local_file_path):
+        send2trash(local_file_path)  # so no files permanently deleted locally
+    db_client.files_download_to_file(local_file_path, remote_file_path)
+
+
+def local_delete(local_file_path):
+    if ok_to_delete():  # safety check that should be impossible to get to
+        print("!!!", local_file_path)
+        send2trash(local_file_path)
+
+
+def remote_delete(locally_deleted_file):
+    print("!!!", locally_deleted_file)
+    try:
+        db_client.files_delete("/" + locally_deleted_file[len(dropbox_local_path) :])
+    except:
+        note(
+            "Tried to delete a file on dropbox, but it was not there "
+            + locally_deleted_file
+        )
 
 
 def unix_time(readable_time):
@@ -170,13 +190,13 @@ def fp(path):
             return path
 
 
-def fix_local_time(client, remote_file_path):
+def fix_local_time(remote_file_path):
     remote_folder_path = "/".join(
         remote_file_path.split("/")[0:-1]
     )  # path excluding file, i.e. just to the folder
-    note("fix local time on " + remote_file_path)
+    note("Fix local time for file " + remote_file_path)
 
-    remote_folder = client.files_list_folder(fp(remote_folder_path)).entries
+    remote_folder = db_client.files_list_folder(fp(remote_folder_path)).entries
     for remote_file in remote_folder:
         if remote_file.path_display == remote_file_path:
             # matched the file we are looking for
@@ -210,7 +230,7 @@ def skip(local_file_path):
     try:
         local_time = local_item_modified_time(local_file_path)
     except:
-        print(("crash on local time check on", local_item))
+        print("Crash on local time check on", local_item)
         return True
     return False
 
@@ -227,7 +247,7 @@ def local_item_not_found_at_remote(remote_folder, remote_file_path):
     return unnaccounted_local_file
 
 
-def store_cursor(db_client):
+def store_live_cursor():
     cursor = db_client.files_list_folder_get_latest_cursor("", recursive=True).cursor
     result = cursor + "\n" + str(time.time())
     with open(drupebox_cursor_path, "wb") as f:
@@ -243,7 +263,7 @@ def load_cursor():
     return cursor
 
 
-def determine_remotely_deleted_files(db_client, cursor):
+def determine_remotely_deleted_files(cursor):
     fyi("Scanning for any remotely deleted files since last Drupebox run")
     deleted_files = []
     if cursor != "":
@@ -268,15 +288,11 @@ def ok_to_delete():
         return True
 
 
-def delete(local_file_path):
-    if ok_to_delete():  # safety check that should be impossible to get to
-        if os.path.isdir(local_file_path):
-            # delete folder and any sub files and folders
-            for root, dirs, files in os.walk(local_file_path, topdown=False):
-                for name in files:
-                    os.remove(os.path.join(root, name))
-                for name in dirs:
-                    os.rmdir(os.path.join(root, name))
-            os.rmdir(local_file_path)
-        else:
-            os.remove(local_file_path)
+config = get_config()
+
+max_file_size = int(config["max_file_size"])
+dropbox_local_path = config["dropbox_local_path"]
+
+db_client = dropbox.Dropbox(
+    app_key=app_key, oauth2_refresh_token=config["refresh_token"]
+)

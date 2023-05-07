@@ -2,15 +2,6 @@
 # -*- coding: utf-8 -*-
 from libs_drupe import *
 
-config = get_config()
-
-max_file_size = int(config["max_file_size"])
-dropbox_local_path = config["dropbox_local_path"]
-
-db_client = dropbox.Dropbox(
-    app_key=app_key, oauth2_refresh_token=config["refresh_token"]
-)
-
 
 def action_locally_deleted_files():
     fyi("Syncing any locally deleted files since last Drupebox run")
@@ -20,15 +11,7 @@ def action_locally_deleted_files():
     )
     for locally_deleted_file in locally_deleted_files:
         note("Found local file deleted, so delete on dropbox " + locally_deleted_file)
-        try:
-            db_client.files_delete(
-                "/" + locally_deleted_file[len(dropbox_local_path) :]
-            )
-        except:
-            note(
-                "Tried to delete a file on dropbox, but it was not there "
-                + locally_deleted_file
-            )
+        remote_delete(locally_deleted_file)
 
 
 def action_folder(remote_folder_path):
@@ -43,7 +26,7 @@ def action_folder(remote_folder_path):
     remote_folder_checked_time = time.time()
     for remote_item in remote_folder:
         if time.time() > remote_folder_checked_time + 60:
-            note("last checked in with server over 60 seconds ago, refreshing")
+            note("Last checked in with server over 60 seconds ago, refreshing")
             action_folder(remote_folder_path)
             return
         remote_file_path = remote_item.path_display
@@ -65,8 +48,8 @@ def action_folder(remote_folder_path):
                     "Modification time on a folder does not matter - no action"
 
             else:
-                download(db_client, remote_file_path, local_file_path)
-                fix_local_time(db_client, remote_file_path)
+                download(remote_file_path, local_file_path)
+                fix_local_time(remote_file_path)
 
         elif not isinstance(
             remote_item, dropbox.files.FolderMetadata
@@ -77,8 +60,8 @@ def action_folder(remote_folder_path):
             if not isinstance(remote_item, dropbox.files.FolderMetadata):
                 note("Local file has been updated - uploading " + remote_file_path)
                 if os.path.getsize(local_file_path) < max_file_size:
-                    upload(db_client, local_file_path, remote_file_path)
-                    fix_local_time(db_client, remote_file_path)
+                    upload(local_file_path, remote_file_path)
+                    fix_local_time(remote_file_path)
                 else:
                     note("File above max size, ignoring: " + remote_file_path)
             else:
@@ -86,7 +69,7 @@ def action_folder(remote_folder_path):
 
     for local_item in os.listdir(local_folder_path):
         if time.time() > remote_folder_checked_time + 60:
-            note("last checked in with server over 60 seconds ago, refreshing")
+            note("Last checked in with server over 60 seconds ago, refreshing")
             action_folder(remote_folder_path)
             return
         remote_file_path = "/" + remote_folder_path + local_item
@@ -103,9 +86,9 @@ def action_folder(remote_folder_path):
             ):
                 note(
                     "Unnaccounted file - Modified time for deleted remote file is later than any local edits so delete "
-                    + remote_file_path
+                    + local_file_path
                 )
-                delete(local_file_path)
+                local_delete(local_file_path)
             else:
                 note(
                     "Unnaccounted file - Local is latest to be modified so upload "
@@ -119,8 +102,8 @@ def action_folder(remote_folder_path):
                     db_client.files_create_folder(remote_file_path)
                 else:
                     if os.path.getsize(local_file_path) < max_file_size:
-                        upload(db_client, local_file_path, remote_file_path)
-                        fix_local_time(db_client, remote_file_path)
+                        upload(local_file_path, remote_file_path)
+                        fix_local_time(remote_file_path)
                     else:
                         note("File above max size, ignoring: " + remote_file_path)
 
@@ -134,14 +117,12 @@ print("Drupebox sync started at", readable_time(time.time()))
 file_tree_from_last_run = load_tree()
 cursor_from_last_run, time_from_last_run = load_cursor()
 
-remotely_deleted_files = determine_remotely_deleted_files(
-    db_client, cursor_from_last_run
-)
+remotely_deleted_files = determine_remotely_deleted_files(cursor_from_last_run)
 action_locally_deleted_files()
 
 fyi("Syncing all other local and remote files changes")
 action_folder("")
 
-store_cursor(db_client)
+store_live_cursor()
 store_tree(get_live_tree())
 print("Drupebox sync complete at", readable_time(time.time()))

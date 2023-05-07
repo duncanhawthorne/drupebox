@@ -12,7 +12,7 @@ How to use
 
 Install dependencies for Drupebox
 ```
-sudo apt install git python3-configobj python3-dropbox
+sudo apt install git python3-configobj python3-send2trash python3-dropbox
 ```
 
 Download Drupebox into the Drupebox script folder
