@@ -1,17 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+import sys
 import time
 import dropbox
 from send2trash import send2trash
 from datetime import datetime
-
-drupebox_cache_store_path = "/dev/shm/drupebox_last_seen_files"
-drupebox_cursor_path = "/dev/shm/drupebox_cursor"
-
-# To customise this code, change the app key below
-# Get your app key from the Dropbox developer website for your app
-app_key = "1skff241na3x0at"
 
 
 def note(text):
@@ -26,18 +20,36 @@ def fyi_ignore(text):
     print("     -> ignore " + text)
 
 
+def path_join(*paths):
+    return unix_slash(os.path.join(*paths))
+
+
+def unix_slash(path):
+    return path.replace("\\", "/")
+
+
+def system_slash(path):
+    return path.replace("/", os.path.sep)
+
+
 def get_config_real():
     from configobj import ConfigObj
 
-    if not path_exists(os.path.join(os.getenv("HOME"), ".config")):
-        os.makedirs(os.path.join(os.getenv("HOME"), ".config"))
-    config_filename = os.path.join(os.getenv("HOME"), ".config", "drupebox")
+    home = os.path.expanduser("~")
+
+    if not path_exists(path_join(home, ".config")):
+        os.makedirs(path_join(home, ".config"))
+    config_filename = path_join(home, ".config", "drupebox")
     if not path_exists(config_filename):
         config = ConfigObj()
         config.filename = config_filename
 
+        # To customise this code, change the app key below
+        # Get your app key from the Dropbox developer website for your app
+        config["app_key"] = "1skff241na3x0at"
+
         flow = dropbox.DropboxOAuth2FlowNoRedirect(
-            app_key, use_pkce=True, token_access_type="offline"
+            config["app_key"], use_pkce=True, token_access_type="offline"
         )
         authorize_url = flow.start()
         print(("1. Go to: " + authorize_url))
@@ -51,15 +63,15 @@ def get_config_real():
             result.user_id,
             result.refresh_token,
         )
-        config["dropbox_local_path"] = input(
-            "Enter dropbox local path (or press enter for "
-            + os.path.join(os.getenv("HOME"), "Dropbox")
-            + "/) "
-        ).strip()
+        config["dropbox_local_path"] = unix_slash(
+            input(
+                "Enter dropbox local path (or press enter for "
+                + path_join(home, "Dropbox")
+                + "/) "
+            ).strip()
+        )
         if config["dropbox_local_path"] == "":
-            config["dropbox_local_path"] = (
-                os.path.join(os.getenv("HOME"), "Dropbox") + "/"
-            )
+            config["dropbox_local_path"] = path_join(home, "Dropbox") + "/"
         if config["dropbox_local_path"][-1] != "/":
             config["dropbox_local_path"] = config["dropbox_local_path"] + "/"
         if not path_exists(config["dropbox_local_path"]):
@@ -86,14 +98,15 @@ get_config.cache = ""
 
 
 def get_live_tree():
+    # get full list of files in the Drupebox folder
     tree = []
     for (root, dirs, files) in os.walk(
         get_config()["dropbox_local_path"], topdown=True, followlinks=True
     ):
         for name in files:
-            tree.append(os.path.join(root, name))
+            tree.append(path_join(root, name))
         for name in dirs:
-            tree.append(os.path.join(root, name))
+            tree.append(path_join(root, name))
     tree.sort(
         key=lambda s: -len(s)
     )  # sort longest to smallest so that later files get deleted before the folders that they are in
@@ -155,7 +168,9 @@ def download_folder(remote_file_path, local_file_path):
 def download_file(remote_file_path, local_file_path):
     print("ddd", remote_file_path)
     if os.path.exists(local_file_path):
-        send2trash(local_file_path)  # so no files permanently deleted locally
+        send2trash(
+            system_slash(local_file_path)
+        )  # so no files permanently deleted locally
     db_client.files_download_to_file(local_file_path, remote_file_path)
     fix_local_time(remote_file_path)
 
@@ -164,7 +179,7 @@ def local_delete(local_file_path):
     remote_file_path = "/" + local_file_path[len(dropbox_local_path) :]
     if config_ok_to_delete():  # safety check that should be impossible to get to
         print("!!!", remote_file_path)
-        send2trash(local_file_path)
+        send2trash(system_slash(local_file_path))
 
 
 def remote_delete(local_file_path):
@@ -261,10 +276,6 @@ def skip(local_file_path):
 
 
 def local_item_not_found_at_remote(remote_folder, remote_file_path):
-    remote_path = remote_file_path
-    extra_path = "/".join(remote_path.split("/")[0:-1])
-    remote_folder_path = extra_path
-
     unnaccounted_local_file = True
     for remote_item in remote_folder:
         if remote_item.path_display == remote_file_path:
@@ -275,13 +286,13 @@ def local_item_not_found_at_remote(remote_folder, remote_file_path):
 def store_live_cursor():
     cursor = db_client.files_list_folder_get_latest_cursor("", recursive=True).cursor
     result = cursor + "\n" + str(time.time())
-    with open(drupebox_cursor_path, "wb") as f:
+    with open(drupebox_cache_cursor_path, "wb") as f:
         f.write(bytes(result.encode()))
 
 
 def load_cursor():
-    if os.path.exists(drupebox_cursor_path):
-        cursor = open(drupebox_cursor_path, "r").read().split("\n")
+    if os.path.exists(drupebox_cache_cursor_path):
+        cursor = open(drupebox_cache_cursor_path, "r").read().split("\n")
     else:
         cursor = ["", "0"]
     cursor = [cursor[0], float(cursor[1])]
@@ -311,10 +322,18 @@ def config_ok_to_delete():
         return True
 
 
+if sys.platform != "win32":
+    drupebox_cache = "/dev/shm/"
+else:
+    drupebox_cache = path_join(home, ".config") + "/"
+
+drupebox_cache_store_path = drupebox_cache + "drupebox_last_seen_files"
+drupebox_cache_cursor_path = drupebox_cache + "drupebox_cursor"
+
 config = get_config()
 
 dropbox_local_path = config["dropbox_local_path"]
 
 db_client = dropbox.Dropbox(
-    app_key=app_key, oauth2_refresh_token=config["refresh_token"]
+    app_key=config["app_key"], oauth2_refresh_token=config["refresh_token"]
 )
