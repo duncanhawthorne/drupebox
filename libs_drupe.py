@@ -173,9 +173,7 @@ def remote_delete(local_file_path):
     try:
         db_client.files_delete(remote_file_path)
     except:
-        note(
-            "Tried to delete file on dropbox, but it was not there"
-        )
+        note("Tried to delete file on dropbox, but it was not there")
 
 
 def unix_time(readable_time):
@@ -299,9 +297,7 @@ def determine_remotely_deleted_files(cursor):
             if isinstance(delta, dropbox.files.DeletedMetadata):
                 deleted_files.append(delta.path_display)
     if deleted_files != []:
-        note(
-            "The following files were deleted on Dropbox since last run"
-        )
+        note("The following files were deleted on Dropbox since last run")
         for deleted_file in deleted_files:
             note(deleted_file)
     return deleted_files
