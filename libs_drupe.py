@@ -25,11 +25,17 @@ def path_join(*paths):
 
 
 def unix_slash(path):
-    return path.replace("\\", "/")
+    if os.path.sep == "\\" and sys.platform == "win32":
+        return path.replace("\\", "/")
+    else:  # safer to not make any edit if possible as linux files can contain backslashes
+        return path
 
 
 def system_slash(path):
-    return path.replace("/", os.path.sep)
+    if os.path.sep == "\\" and sys.platform == "win32":
+        return path.replace("/", os.path.sep)
+    else:  # safer to not make any edit if possible as linux files can contain backslashes
+        return path
 
 
 def get_config_real():
@@ -56,11 +62,7 @@ def get_config_real():
         code = input("Enter the authorization code here: ").strip()
         result = flow.finish(code)
 
-        (config["access_token"], config["user_id"], config["refresh_token"]) = (
-            result.access_token,
-            result.user_id,
-            result.refresh_token,
-        )
+        config["refresh_token"] = result.refresh_token
         config["dropbox_local_path"] = unix_slash(
             input(
                 "Enter dropbox local path (or press enter for "
