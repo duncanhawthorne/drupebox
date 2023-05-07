@@ -35,8 +35,6 @@ def system_slash(path):
 def get_config_real():
     from configobj import ConfigObj
 
-    home = os.path.expanduser("~")
-
     if not path_exists(path_join(home, ".config")):
         os.makedirs(path_join(home, ".config"))
     config_filename = path_join(home, ".config", "drupebox")
@@ -321,6 +319,8 @@ def config_ok_to_delete():
     else:
         return True
 
+
+home = os.path.expanduser("~")
 
 if sys.platform != "win32":
     drupebox_cache = "/dev/shm/"
