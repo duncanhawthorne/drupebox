@@ -285,7 +285,7 @@ def remote_modified_time(remote_item):
 
 def fix_local_time(remote_file_path):
     remote_folder_path = fp(
-        path_join(remote_file_path.split("/")[0:-1])
+        path_join(*tuple(remote_file_path.split("/")[0:-1]))
     )  # path excluding file, i.e. just to the folder
     note("Fix local time for file")
 
