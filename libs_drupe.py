@@ -77,9 +77,9 @@ def get_config_real():
         if not path_exists(config["dropbox_local_path"]):
             os.makedirs(config["dropbox_local_path"])
         config["max_file_size"] = 10000000
-        config["excluded_paths"] = [
-            '"/home/pi/SUPER SECRET LOCATION 1"',
-            '"/home/pi/SUPER SECRET LOCATION 2"',
+        config["excluded_folder_paths"] = [
+            "/home/pi/SUPER SECRET LOCATION 1/",
+            "/home/pi/SUPER SECRET LOCATION 2/",
         ]
         config["really_delete_local_files"] = False
         config.write()
@@ -103,6 +103,8 @@ def get_live_tree():
     for (root, dirs, files) in os.walk(
         get_config()["dropbox_local_path"], topdown=True, followlinks=True
     ):
+        root = unix_slash(root)
+        dirs[:] = [d for d in dirs if root + d +"/" not in excluded_folder_paths]
         for name in files:
             tree.append(path_join(root, name))
         for name in dirs:
@@ -263,6 +265,9 @@ def skip(local_file_path):
     if local_item[-len("__pycache__") :] == "__pycache__":
         fyi_ignore("__pycache__")
         return True
+    if local_item[-len(".git") :] == ".git":
+        fyi_ignore(".git")
+        return True
     if local_item in [".DS_Store", "._.DS_Store", "DG1__DS_DIR_HDR", "DG1__DS_VOL_HDR"]:
         fyi_ignore(local_item)
         return True
@@ -334,7 +339,10 @@ drupebox_cache_cursor_path = drupebox_cache + "drupebox_cursor"
 
 config = get_config()
 
-dropbox_local_path = config["dropbox_local_path"]
+dropbox_local_path = unix_slash(config["dropbox_local_path"])
+
+excluded_folder_paths = []
+excluded_folder_paths[:] = [(unix_slash(d)+"/").replace("//","/") for d in config["excluded_folder_paths"]]
 
 db_client = dropbox.Dropbox(
     app_key=config["app_key"], oauth2_refresh_token=config["refresh_token"]

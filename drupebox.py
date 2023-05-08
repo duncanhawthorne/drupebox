@@ -16,11 +16,12 @@ def action_locally_deleted_files():
 
 def action_folder(remote_folder_path):
     fyi("/" + remote_folder_path)
-    for excluded_path in config["excluded_paths"]:
-        if remote_folder_path[0 : len(excluded_path)] == excluded_path:
+
+    local_folder_path = dropbox_local_path + remote_folder_path
+    for excluded_folder_path in excluded_folder_paths:
+        if local_folder_path[0 : len(excluded_folder_path)] == excluded_folder_path:
             note("Path excluded")
             return
-    local_folder_path = dropbox_local_path + remote_folder_path
 
     remote_folder = db_client.files_list_folder(fp(remote_folder_path)).entries
     remote_folder_checked_time = time.time()
@@ -70,10 +71,10 @@ def action_folder(remote_folder_path):
             continue
         if local_item_not_found_at_remote(remote_folder, remote_file_path):
             if (
-                config_ok_to_delete()
-                and time_from_last_run > local_modified_time(local_file_path)
+                time_from_last_run > local_modified_time(local_file_path)
                 and time_from_last_run > time.time() - 60 * 60 * 2
                 and remote_file_path in remotely_deleted_files
+                and config_ok_to_delete()
             ):
                 note("Found local item that is deleted on remote Dropbox, so delete")
                 local_delete(local_file_path)
