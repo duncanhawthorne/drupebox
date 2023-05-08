@@ -19,6 +19,7 @@ def action_folder(remote_folder_path):
 
     local_folder_path = dropbox_local_path + remote_folder_path
     for excluded_folder_path in excluded_folder_paths:
+        # forwad slash at end of path ensures prefix-free
         if local_folder_path[0 : len(excluded_folder_path)] == excluded_folder_path:
             note("Path excluded")
             return

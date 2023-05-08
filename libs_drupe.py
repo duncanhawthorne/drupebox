@@ -38,6 +38,11 @@ def system_slash(path):
         return path
 
 
+def fws(path):
+    # folder in format with trailing forward slash
+    return (unix_slash(path) + "/").replace("//", "/")
+
+
 def get_config_real():
     from configobj import ConfigObj
 
@@ -101,10 +106,12 @@ def get_live_tree():
     # get full list of files in the Drupebox folder
     tree = []
     for (root, dirs, files) in os.walk(
-        get_config()["dropbox_local_path"], topdown=True, followlinks=True
+        dropbox_local_path, topdown=True, followlinks=True
     ):
-        root = unix_slash(root)
-        dirs[:] = [d for d in dirs if root + d + "/" not in excluded_folder_paths]
+        root = unix_slash(root)  # format with forward slashes on all plaforms
+        dirs[:] = [
+            d for d in dirs if fws(path_join(root, d)) not in excluded_folder_paths
+        ]  # test with "/" at end to match excluded_folder_paths and to ensure prefix-free matching
         for name in files:
             tree.append(path_join(root, name))
         for name in dirs:
@@ -243,7 +250,7 @@ def fix_local_time(remote_file_path):
         if remote_file.path_display == remote_file_path:
             # matched the file we are looking for
             file_modified_time = remote_file.client_modified
-            local_file_path = get_config()["dropbox_local_path"] + remote_file_path
+            local_file_path = dropbox_local_path + remote_file_path
             os.utime(
                 local_file_path,
                 (
@@ -334,16 +341,18 @@ if sys.platform != "win32":
 else:
     drupebox_cache = path_join(home, ".config") + "/"
 
-drupebox_cache_store_path = drupebox_cache + "drupebox_last_seen_files"
-drupebox_cache_cursor_path = drupebox_cache + "drupebox_cursor"
+drupebox_cache_store_path = path_join(drupebox_cache, "drupebox_last_seen_files")
+drupebox_cache_cursor_path = path_join(drupebox_cache, "drupebox_cursor")
 
 config = get_config()
 
 dropbox_local_path = unix_slash(config["dropbox_local_path"])
 
+# format excluded paths with forward slashes on all platforms and end with forward slash to ensure prefix-free
 excluded_folder_paths = []
 excluded_folder_paths[:] = [
-    (unix_slash(d) + "/").replace("//", "/") for d in config["excluded_folder_paths"]
+    fws(excluded_folder_path)
+    for excluded_folder_path in config["excluded_folder_paths"]
 ]
 
 db_client = dropbox.Dropbox(
