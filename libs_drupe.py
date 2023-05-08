@@ -186,13 +186,20 @@ def upload(local_file_path, remote_file_path):
         note("File above max size, ignoring: " + remote_file_path)
 
 
+def strip_trailing_slash(path):
+    if path[-1] == "/":
+        path = path[:-1]
+    return path
+
+
 def create_remote_folder(remote_file_path):
+    remote_file_path = strip_trailing_slash(remote_file_path)
     print("ccc", remote_file_path)
     db_client.files_create_folder(remote_file_path)
 
 
-def download_folder(remote_file_path, local_file_path):
-    print("ddd", remote_file_path)
+def create_local_folder(remote_file_path, local_file_path):
+    print("ccc", remote_file_path)
     if not path_exists(local_file_path):
         os.makedirs(local_file_path)
     else:
@@ -287,6 +294,7 @@ def fix_local_time(remote_file_path):
 
 
 def skip(local_file_path):
+    local_file_path = strip_trailing_slash(local_file_path)
     local_item = local_file_path.split("/")[-1]
     if local_item[0 : len(".fuse_hidden")] == ".fuse_hidden":
         fyi_ignore("fuse hidden files")
@@ -304,15 +312,21 @@ def skip(local_file_path):
         fyi_ignore(local_item)
         return True
 
-    try:
-        local_time = local_modified_time(local_file_path)
-    except:
-        print("Crash on local time check on", local_item)
-        return True
+    return False
+
+
+def is_excluded_folder(local_folder_path):
+    remote_file_path = "/" + local_folder_path[len(dropbox_local_path) :]
+    for excluded_folder_path in excluded_folder_paths:
+        # forwad slash at end of path ensures prefix-free
+        if local_folder_path[0 : len(excluded_folder_path)] == excluded_folder_path:
+            print("exc", remote_file_path)
+            return True
     return False
 
 
 def local_item_not_found_at_remote(remote_folder, remote_file_path):
+    remote_file_path = strip_trailing_slash(remote_file_path)
     unnaccounted_local_file = True
     for remote_item in remote_folder:
         if remote_item.path_display == remote_file_path:

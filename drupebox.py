@@ -18,11 +18,8 @@ def action_folder(remote_folder_path):
     fyi("/" + remote_folder_path)
 
     local_folder_path = dropbox_local_path + remote_folder_path
-    for excluded_folder_path in excluded_folder_paths:
-        # forwad slash at end of path ensures prefix-free
-        if local_folder_path[0 : len(excluded_folder_path)] == excluded_folder_path:
-            note("Path excluded")
-            return
+    if is_excluded_folder(local_folder_path):
+        return
 
     remote_folder = db_client.files_list_folder(fp(remote_folder_path)).entries
     remote_folder_checked_time = time.time()
@@ -34,21 +31,26 @@ def action_folder(remote_folder_path):
             action_folder(remote_folder_path)
             return
         remote_file_path = remote_item.path_display
+        if not is_file(remote_item):
+            remote_file_path = fws(remote_file_path)
         local_file_path = dropbox_local_path + remote_file_path[1:]
+        if skip(local_file_path) or is_excluded_folder(local_file_path):
+            continue
+
         if (
             not path_exists(local_file_path)
             or is_file(remote_item)
             and remote_modified_time(remote_item) > local_modified_time(local_file_path)
         ):
             if path_exists(local_file_path):
-                note("Found new file on remote Dropbox, so download")
-            else:
                 note("Found updated file on remote Dropbox, so download")
+            else:
+                note("Found new file on remote Dropbox, so download")
 
             if is_file(remote_item):
                 download_file(remote_file_path, local_file_path)
             else:
-                download_folder(remote_file_path, local_file_path)
+                create_local_folder(remote_file_path, local_file_path)
 
         elif is_file(remote_item) and local_modified_time(
             local_file_path
@@ -68,7 +70,12 @@ def action_folder(remote_folder_path):
             return
         remote_file_path = "/" + remote_folder_path + local_item
         local_file_path = local_folder_path + local_item
-        if skip(local_file_path):
+
+        if os.path.isdir(local_file_path):
+            remote_file_path = remote_file_path + "/"
+            local_file_path = local_file_path + "/"
+
+        if skip(local_file_path) or is_excluded_folder(local_file_path):
             continue
         if local_item_not_found_at_remote(remote_folder, remote_file_path):
             if (
