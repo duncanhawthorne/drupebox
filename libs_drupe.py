@@ -38,9 +38,31 @@ def system_slash(path):
         return path
 
 
-def fws(path):
+def add_trailing_slash(path):
     # folder in format with trailing forward slash
-    return (unix_slash(path) + "/").replace("//", "/")
+    path = unix_slash(path)
+    if path[-1] != "/":
+        path = path + "/"
+    return path
+
+
+def strip_trailing_slash(path):
+    if path[-1] == "/":
+        path = path[:-1]
+    return path
+
+
+def fp(path):
+    # Fix path for use in dropbox, i.e. to have leading slash, except dropbox root folder is "" not "/"
+    if path == "":
+        return path
+    if path == "/":
+        return ""
+    else:
+        if path[0] != "/":
+            return "/" + path
+        else:
+            return path
 
 
 def get_config_real():
@@ -77,14 +99,13 @@ def get_config_real():
             ).strip()
         )
         if config["dropbox_local_path"] == "":
-            config["dropbox_local_path"] = path_join(home, "Dropbox") + "/"
-        if config["dropbox_local_path"][-1] != "/":
-            config["dropbox_local_path"] = config["dropbox_local_path"] + "/"
+            config["dropbox_local_path"] = path_join(home, "Dropbox")
+        config["dropbox_local_path"] = add_trailing_slash(config["dropbox_local_path"])
         if not path_exists(config["dropbox_local_path"]):
             os.makedirs(config["dropbox_local_path"])
         config["max_file_size"] = 10000000
         config["excluded_folder_paths"] = [
-            "/home/pi/SUPER SECRET LOCATION 1/",
+            "/home/pi/SUPER_SECRET_LOCATION_1/",
             "/home/pi/SUPER SECRET LOCATION 2/",
         ]
         config["really_delete_local_files"] = False
@@ -95,21 +116,21 @@ def get_config_real():
     # Sanitize config
 
     # format dropbox local path with forward slashes on all platforms and end with forward slash to ensure prefix-free
-    if config["dropbox_local_path"] != fws(config["dropbox_local_path"]):
-        config["dropbox_local_path"] = fws(config["dropbox_local_path"])
+    if config["dropbox_local_path"] != add_trailing_slash(config["dropbox_local_path"]):
+        config["dropbox_local_path"] = add_trailing_slash(config["dropbox_local_path"])
         config.write()
 
     # format excluded paths with forward slashes on all platforms and end with forward slash to ensure prefix-free
     excluded_folder_paths_sanitize = False
     for excluded_folder_path in config["excluded_folder_paths"]:
-        if fws(excluded_folder_path) != excluded_folder_path:
+        if add_trailing_slash(excluded_folder_path) != excluded_folder_path:
             excluded_folder_paths_sanitize = True
             break
 
     if excluded_folder_paths_sanitize:
         excluded_folder_paths = []
         excluded_folder_paths[:] = [
-            fws(excluded_folder_path)
+            add_trailing_slash(excluded_folder_path)
             for excluded_folder_path in config["excluded_folder_paths"]
         ]
         config["excluded_folder_paths"] = excluded_folder_paths
@@ -127,6 +148,14 @@ def get_config():
 get_config.cache = ""
 
 
+def config_ok_to_delete():
+    if get_config()["really_delete_local_files"] != "True":
+        note("Drupebox not set to delete local files, so force reupload local file")
+        return False
+    else:
+        return True
+
+
 def get_live_tree():
     # get full list of files in the Drupebox folder
     tree = []
@@ -135,8 +164,10 @@ def get_live_tree():
     ):
         root = unix_slash(root)  # format with forward slashes on all plaforms
         dirs[:] = [
-            d for d in dirs if fws(path_join(root, d)) not in excluded_folder_paths
-        ]  # test with "/" at end to match excluded_folder_paths and to ensure prefix-free matching
+            d
+            for d in dirs
+            if add_trailing_slash(path_join(root, d)) not in excluded_folder_paths
+        ]  # test with slash at end to match excluded_folder_paths and to ensure prefix-free matching
         for name in files:
             tree.append(path_join(root, name))
         for name in dirs:
@@ -186,12 +217,6 @@ def upload(local_file_path, remote_file_path):
         note("File above max size, ignoring: " + remote_file_path)
 
 
-def strip_trailing_slash(path):
-    if path[-1] == "/":
-        path = path[:-1]
-    return path
-
-
 def create_remote_folder(remote_file_path):
     remote_file_path = strip_trailing_slash(remote_file_path)
     print("ccc", remote_file_path)
@@ -217,14 +242,14 @@ def download_file(remote_file_path, local_file_path):
 
 
 def local_delete(local_file_path):
-    remote_file_path = "/" + local_file_path[len(dropbox_local_path) :]
+    remote_file_path = fp(local_file_path[len(dropbox_local_path) :])
     if config_ok_to_delete():  # safety check that should be impossible to get to
         print("!!!", remote_file_path)
         send2trash(system_slash(local_file_path))
 
 
 def remote_delete(local_file_path):
-    remote_file_path = "/" + local_file_path[len(dropbox_local_path) :]
+    remote_file_path = fp(local_file_path[len(dropbox_local_path) :])
     print("!!!", remote_file_path)
     try:
         db_client.files_delete(remote_file_path)
@@ -258,26 +283,13 @@ def remote_modified_time(remote_item):
     return unix_time(remote_item.client_modified)
 
 
-def fp(path):
-    # Fix path function as dropbox root folder is "" not "/"
-    if path == "":
-        return path
-    if path == "/":
-        return ""
-    else:
-        if path[0] != "/":
-            return "/" + path
-        else:
-            return path
-
-
 def fix_local_time(remote_file_path):
-    remote_folder_path = "/".join(
-        remote_file_path.split("/")[0:-1]
+    remote_folder_path = fp(
+        path_join(remote_file_path.split("/")[0:-1])
     )  # path excluding file, i.e. just to the folder
     note("Fix local time for file")
 
-    remote_folder = db_client.files_list_folder(fp(remote_folder_path)).entries
+    remote_folder = db_client.files_list_folder(remote_folder_path).entries
     for remote_file in remote_folder:
         if remote_file.path_display == remote_file_path:
             # matched the file we are looking for
@@ -294,8 +306,7 @@ def fix_local_time(remote_file_path):
 
 
 def skip(local_file_path):
-    local_file_path = strip_trailing_slash(local_file_path)
-    local_item = local_file_path.split("/")[-1]
+    local_item = strip_trailing_slash(local_file_path).split("/")[-1]
     if local_item[0 : len(".fuse_hidden")] == ".fuse_hidden":
         fyi_ignore("fuse hidden files")
         return True
@@ -316,7 +327,7 @@ def skip(local_file_path):
 
 
 def is_excluded_folder(local_folder_path):
-    remote_file_path = "/" + local_folder_path[len(dropbox_local_path) :]
+    remote_file_path = fp(local_folder_path[len(dropbox_local_path) :])
     for excluded_folder_path in excluded_folder_paths:
         # forwad slash at end of path ensures prefix-free
         if local_folder_path[0 : len(excluded_folder_path)] == excluded_folder_path:
@@ -365,20 +376,12 @@ def determine_remotely_deleted_files(cursor):
     return deleted_files
 
 
-def config_ok_to_delete():
-    if get_config()["really_delete_local_files"] != "True":
-        note("Drupebox not set to delete local files, so force reupload local file")
-        return False
-    else:
-        return True
-
-
 home = os.path.expanduser("~")
 
 if sys.platform != "win32":
     drupebox_cache = "/dev/shm/"
 else:
-    drupebox_cache = path_join(home, ".config") + "/"
+    drupebox_cache = add_trailing_slash(path_join(home, ".config"))
 
 drupebox_cache_store_path = path_join(drupebox_cache, "drupebox_last_seen_files")
 drupebox_cache_cursor_path = path_join(drupebox_cache, "drupebox_cursor")

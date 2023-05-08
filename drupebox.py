@@ -15,7 +15,7 @@ def action_locally_deleted_files():
 
 
 def action_folder(remote_folder_path):
-    fyi("/" + remote_folder_path)
+    fyi(fp(remote_folder_path))
 
     local_folder_path = dropbox_local_path + remote_folder_path
     if is_excluded_folder(local_folder_path):
@@ -32,8 +32,8 @@ def action_folder(remote_folder_path):
             return
         remote_file_path = remote_item.path_display
         if not is_file(remote_item):
-            remote_file_path = fws(remote_file_path)
-        local_file_path = dropbox_local_path + remote_file_path[1:]
+            remote_file_path = add_trailing_slash(remote_file_path)
+        local_file_path = path_join(dropbox_local_path, remote_file_path[1:])
         if skip(local_file_path) or is_excluded_folder(local_file_path):
             continue
 
@@ -68,12 +68,12 @@ def action_folder(remote_folder_path):
             note("Last checked in with server over 60 seconds ago, refreshing")
             action_folder(remote_folder_path)
             return
-        remote_file_path = "/" + remote_folder_path + local_item
-        local_file_path = local_folder_path + local_item
+        remote_file_path = fp(path_join(remote_folder_path, local_item))
+        local_file_path = path_join(local_folder_path, local_item)
 
         if os.path.isdir(local_file_path):
-            remote_file_path = remote_file_path + "/"
-            local_file_path = local_file_path + "/"
+            remote_file_path = add_trailing_slash(remote_file_path)
+            local_file_path = add_trailing_slash(local_file_path)
 
         if skip(local_file_path) or is_excluded_folder(local_file_path):
             continue
@@ -97,7 +97,9 @@ def action_folder(remote_folder_path):
     for sub_folder in os.listdir(local_folder_path):
         if os.path.isdir(local_folder_path + sub_folder):
             if not skip(local_folder_path + sub_folder):
-                action_folder(remote_folder_path + sub_folder + "/")
+                action_folder(
+                    add_trailing_slash(path_join(remote_folder_path, sub_folder))
+                )
 
 
 print("Drupebox sync started at", readable_time(time.time()))
