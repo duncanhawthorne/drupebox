@@ -50,6 +50,7 @@ def get_config_real():
         os.makedirs(path_join(home, ".config"))
     config_filename = path_join(home, ".config", "drupebox")
     if not path_exists(config_filename):
+        # First time only
         config = ConfigObj()
         config.filename = config_filename
 
@@ -90,6 +91,30 @@ def get_config_real():
         config.write()
 
     config = ConfigObj(config_filename)
+
+    # Sanitize config
+
+    # format dropbox local path with forward slashes on all platforms and end with forward slash to ensure prefix-free
+    if config["dropbox_local_path"] != fws(config["dropbox_local_path"]):
+        config["dropbox_local_path"] = fws(config["dropbox_local_path"])
+        config.write()
+
+    # format excluded paths with forward slashes on all platforms and end with forward slash to ensure prefix-free
+    excluded_folder_paths_sanitize = False
+    for excluded_folder_path in config["excluded_folder_paths"]:
+        if fws(excluded_folder_path) != excluded_folder_path:
+            excluded_folder_paths_sanitize = True
+            break
+
+    if excluded_folder_paths_sanitize:
+        excluded_folder_paths = []
+        excluded_folder_paths[:] = [
+            fws(excluded_folder_path)
+            for excluded_folder_path in config["excluded_folder_paths"]
+        ]
+        config["excluded_folder_paths"] = excluded_folder_paths
+        config.write()
+
     return config
 
 
@@ -346,14 +371,8 @@ drupebox_cache_cursor_path = path_join(drupebox_cache, "drupebox_cursor")
 
 config = get_config()
 
-dropbox_local_path = unix_slash(config["dropbox_local_path"])
-
-# format excluded paths with forward slashes on all platforms and end with forward slash to ensure prefix-free
-excluded_folder_paths = []
-excluded_folder_paths[:] = [
-    fws(excluded_folder_path)
-    for excluded_folder_path in config["excluded_folder_paths"]
-]
+dropbox_local_path = config["dropbox_local_path"]
+excluded_folder_paths = config["excluded_folder_paths"]
 
 db_client = dropbox.Dropbox(
     app_key=config["app_key"], oauth2_refresh_token=config["refresh_token"]
