@@ -104,7 +104,7 @@ def get_live_tree():
         get_config()["dropbox_local_path"], topdown=True, followlinks=True
     ):
         root = unix_slash(root)
-        dirs[:] = [d for d in dirs if root + d +"/" not in excluded_folder_paths]
+        dirs[:] = [d for d in dirs if root + d + "/" not in excluded_folder_paths]
         for name in files:
             tree.append(path_join(root, name))
         for name in dirs:
@@ -342,7 +342,9 @@ config = get_config()
 dropbox_local_path = unix_slash(config["dropbox_local_path"])
 
 excluded_folder_paths = []
-excluded_folder_paths[:] = [(unix_slash(d)+"/").replace("//","/") for d in config["excluded_folder_paths"]]
+excluded_folder_paths[:] = [
+    (unix_slash(d) + "/").replace("//", "/") for d in config["excluded_folder_paths"]
+]
 
 db_client = dropbox.Dropbox(
     app_key=config["app_key"], oauth2_refresh_token=config["refresh_token"]
