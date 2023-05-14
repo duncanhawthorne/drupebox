@@ -8,6 +8,15 @@ from send2trash import send2trash
 from datetime import datetime
 
 
+'''
+Variables in the following fomrats
+remote_file_path -> dropbox format
+remote_folder_path -> dropbox format (for the avoidance of doubt, no trailing slash)
+local_file_path -> posix format, no trailing slash
+local_folder_path -> posix format, with trailing slash
+'''
+
+
 def note(text):
     print(">>> " + text)
 
@@ -52,7 +61,7 @@ def strip_trailing_slash(path):
     return path
 
 
-def fp(path):
+def db(path):
     # Fix path for use in dropbox, i.e. to have leading slash, except dropbox root folder is "" not "/"
     if path == "":
         return path
@@ -60,9 +69,13 @@ def fp(path):
         return ""
     else:
         if path[0] != "/":
-            return "/" + path
+            path1 = "/" + path
         else:
-            return path
+            path1 = path
+    return strip_trailing_slash(path1)
+
+def get_remote_file_path_of_local_file_path(local_file_path):
+    return db(local_file_path[len(dropbox_local_path) :])
 
 
 def get_config_real():
@@ -218,7 +231,6 @@ def upload(local_file_path, remote_file_path):
 
 
 def create_remote_folder(remote_file_path):
-    remote_file_path = strip_trailing_slash(remote_file_path)
     print("ccc", remote_file_path)
     db_client.files_create_folder(remote_file_path)
 
@@ -242,14 +254,14 @@ def download_file(remote_file_path, local_file_path):
 
 
 def local_delete(local_file_path):
-    remote_file_path = fp(local_file_path[len(dropbox_local_path) :])
+    remote_file_path = get_remote_file_path_of_local_file_path(local_file_path)
     if config_ok_to_delete():  # safety check that should be impossible to get to
         print("!!!", remote_file_path)
         send2trash(system_slash(local_file_path))
 
 
 def remote_delete(local_file_path):
-    remote_file_path = fp(local_file_path[len(dropbox_local_path) :])
+    remote_file_path = get_remote_file_path_of_local_file_path(local_file_path)
     print("!!!", remote_file_path)
     try:
         db_client.files_delete(remote_file_path)
@@ -284,7 +296,7 @@ def remote_modified_time(remote_item):
 
 
 def fix_local_time(remote_file_path):
-    remote_folder_path = fp(
+    remote_folder_path = db(
         path_join(*tuple(remote_file_path.split("/")[0:-1]))
     )  # path excluding file, i.e. just to the folder
     note("Fix local time for file")
@@ -327,7 +339,7 @@ def skip(local_file_path):
 
 
 def is_excluded_folder(local_folder_path):
-    remote_file_path = fp(local_folder_path[len(dropbox_local_path) :])
+    remote_file_path = get_remote_file_path_of_local_file_path(local_folder_path)
     for excluded_folder_path in excluded_folder_paths:
         # forwad slash at end of path ensures prefix-free
         if local_folder_path[0 : len(excluded_folder_path)] == excluded_folder_path:
@@ -337,7 +349,6 @@ def is_excluded_folder(local_folder_path):
 
 
 def local_item_not_found_at_remote(remote_folder, remote_file_path):
-    remote_file_path = strip_trailing_slash(remote_file_path)
     unnaccounted_local_file = True
     for remote_item in remote_folder:
         if remote_item.path_display == remote_file_path:

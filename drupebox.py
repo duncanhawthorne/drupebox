@@ -15,13 +15,13 @@ def action_locally_deleted_files():
 
 
 def action_folder(remote_folder_path):
-    fyi(fp(remote_folder_path))
+    fyi(remote_folder_path)
 
-    local_folder_path = dropbox_local_path + remote_folder_path
+    local_folder_path = dropbox_local_path + remote_folder_path[1:] + "/"
     if is_excluded_folder(local_folder_path):
         return
 
-    remote_folder = db_client.files_list_folder(fp(remote_folder_path)).entries
+    remote_folder = db_client.files_list_folder(remote_folder_path).entries
     remote_folder_checked_time = time.time()
 
     # Go through remote items
@@ -31,9 +31,9 @@ def action_folder(remote_folder_path):
             action_folder(remote_folder_path)
             return
         remote_file_path = remote_item.path_display
-        if not is_file(remote_item):
-            remote_file_path = add_trailing_slash(remote_file_path)
         local_file_path = path_join(dropbox_local_path, remote_file_path[1:])
+        if not is_file(remote_item):
+            local_file_path = add_trailing_slash(local_file_path)
         if skip(local_file_path) or is_excluded_folder(local_file_path):
             continue
 
@@ -68,11 +68,10 @@ def action_folder(remote_folder_path):
             note("Last checked in with server over 60 seconds ago, refreshing")
             action_folder(remote_folder_path)
             return
-        remote_file_path = fp(path_join(remote_folder_path, local_item))
+        remote_file_path = db(path_join(remote_folder_path, local_item))
         local_file_path = path_join(local_folder_path, local_item)
 
         if os.path.isdir(local_file_path):
-            remote_file_path = add_trailing_slash(remote_file_path)
             local_file_path = add_trailing_slash(local_file_path)
 
         if skip(local_file_path) or is_excluded_folder(local_file_path):
@@ -81,7 +80,7 @@ def action_folder(remote_folder_path):
             if (
                 time_from_last_run > local_modified_time(local_file_path)
                 and time_from_last_run > time.time() - 60 * 60 * 2
-                and strip_trailing_slash(remote_file_path) in remotely_deleted_files
+                and remote_file_path in remotely_deleted_files
                 and config_ok_to_delete()
             ):
                 note("Found local item that is deleted on remote Dropbox, so delete")
@@ -98,7 +97,7 @@ def action_folder(remote_folder_path):
         if os.path.isdir(local_folder_path + sub_folder):
             if not skip(local_folder_path + sub_folder):
                 action_folder(
-                    add_trailing_slash(path_join(remote_folder_path, sub_folder))
+                    db(path_join(remote_folder_path, sub_folder))
                 )
 
 
