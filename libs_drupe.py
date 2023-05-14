@@ -30,7 +30,12 @@ def fyi_ignore(text):
 
 
 def path_join(*paths):
-    return unix_slash(os.path.join(*paths))
+    paths_list = list(paths)
+    # enable joining /X with /Y to form /X/Y, given that os.path.join would just produce /Y
+    for i in range(len(paths_list)):
+        if i > 0 and len(paths_list[i]) > 0 and paths_list[i][0] == "/":
+            paths_list[i] = paths_list[i].lstrip("/")
+    return unix_slash(os.path.join(*tuple(paths_list)))
 
 
 def unix_slash(path):
@@ -301,13 +306,12 @@ def fix_local_time(remote_file_path):
         path_join(*tuple(remote_file_path.split("/")[0:-1]))
     )  # path excluding file, i.e. just to the folder
     note("Fix local time for file")
-
     remote_folder = db_client.files_list_folder(remote_folder_path).entries
     for remote_file in remote_folder:
         if remote_file.path_display == remote_file_path:
             # matched the file we are looking for
             file_modified_time = remote_file.client_modified
-            local_file_path = path_join(dropbox_local_path, remote_file_path)
+            local_file_path = path_join(dropbox_local_path, remote_file_path[1:])
             os.utime(
                 local_file_path,
                 (
