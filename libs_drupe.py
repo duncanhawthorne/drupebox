@@ -307,7 +307,7 @@ def fix_local_time(remote_file_path):
         if remote_file.path_display == remote_file_path:
             # matched the file we are looking for
             file_modified_time = remote_file.client_modified
-            local_file_path = dropbox_local_path + remote_file_path
+            local_file_path = path_join(dropbox_local_path, remote_file_path)
             os.utime(
                 local_file_path,
                 (
@@ -340,9 +340,10 @@ def skip(local_file_path):
 
 
 def is_excluded_folder(local_folder_path):
+    # forwad slash at end of path ensures prefix-free
+    local_folder_path = add_trailing_slash(local_folder_path)
     remote_file_path = get_remote_file_path_of_local_file_path(local_folder_path)
     for excluded_folder_path in excluded_folder_paths:
-        # forwad slash at end of path ensures prefix-free
         if local_folder_path[0 : len(excluded_folder_path)] == excluded_folder_path:
             print("exc", remote_file_path)
             return True
