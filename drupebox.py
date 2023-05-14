@@ -17,7 +17,7 @@ def action_locally_deleted_files():
 def action_folder(remote_folder_path):
     fyi(remote_folder_path)
 
-    local_folder_path = dropbox_local_path + remote_folder_path[1:] + "/"
+    local_folder_path = dropbox_local_path + (remote_folder_path + "/")[1:]
     if is_excluded_folder(local_folder_path):
         return
 
@@ -96,9 +96,7 @@ def action_folder(remote_folder_path):
     for sub_folder in os.listdir(local_folder_path):
         if os.path.isdir(local_folder_path + sub_folder):
             if not skip(local_folder_path + sub_folder):
-                action_folder(
-                    db(path_join(remote_folder_path, sub_folder))
-                )
+                action_folder(db(path_join(remote_folder_path, sub_folder)))
 
 
 print("Drupebox sync started at", readable_time(time.time()))

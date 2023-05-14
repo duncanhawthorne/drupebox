@@ -8,13 +8,13 @@ from send2trash import send2trash
 from datetime import datetime
 
 
-'''
+"""
 Variables in the following fomrats
 remote_file_path -> dropbox format
 remote_folder_path -> dropbox format (for the avoidance of doubt, no trailing slash)
 local_file_path -> posix format, no trailing slash
 local_folder_path -> posix format, with trailing slash
-'''
+"""
 
 
 def note(text):
@@ -73,6 +73,7 @@ def db(path):
         else:
             path1 = path
     return strip_trailing_slash(path1)
+
 
 def get_remote_file_path_of_local_file_path(local_file_path):
     return db(local_file_path[len(dropbox_local_path) :])
