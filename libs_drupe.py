@@ -13,20 +13,20 @@ Variables in the following fomrats
 remote_file_path -> dropbox format
 remote_folder_path -> dropbox format (for the avoidance of doubt, no trailing slash)
 local_file_path -> posix format, no trailing slash
-local_folder_path -> posix format, with trailing slash
+local_folder_path -> posix format, no trailing slash
 """
 
 
 def note(text):
-    print(">>> " + text)
+    print(">>>", text)
 
 
 def fyi(text):
-    print("    " + text)
+    print("   ", text)
 
 
 def fyi_ignore(text):
-    print("     -> ignore " + text)
+    print("     -> ignore", text)
 
 
 def path_join(*paths):
@@ -60,12 +60,6 @@ def add_trailing_slash(path):
     return path
 
 
-def strip_trailing_slash(path):
-    if path[-1] == "/":
-        path = path[:-1]
-    return path
-
-
 def db(path):
     # Fix path for use in dropbox, i.e. to have leading slash, except dropbox root folder is "" not "/"
     if path == "":
@@ -77,7 +71,7 @@ def db(path):
             path1 = "/" + path
         else:
             path1 = path
-    return strip_trailing_slash(path1)
+    return path1.rstrip("/")
 
 
 def get_remote_file_path_of_local_file_path(local_file_path):
@@ -323,7 +317,7 @@ def fix_local_time(remote_file_path):
 
 
 def skip(local_file_path):
-    local_item = strip_trailing_slash(local_file_path).split("/")[-1]
+    local_item = local_file_path.rstrip("/").split("/")[-1]  # rstrip for safety only
     if local_item[0 : len(".fuse_hidden")] == ".fuse_hidden":
         fyi_ignore("fuse hidden files")
         return True
@@ -345,10 +339,15 @@ def skip(local_file_path):
 
 def is_excluded_folder(local_folder_path):
     # forwad slash at end of path ensures prefix-free
-    local_folder_path = add_trailing_slash(local_folder_path)
-    remote_file_path = get_remote_file_path_of_local_file_path(local_folder_path)
+    local_folder_path_with_slash = add_trailing_slash(local_folder_path)
+    remote_file_path = get_remote_file_path_of_local_file_path(
+        local_folder_path_with_slash
+    )
     for excluded_folder_path in excluded_folder_paths:
-        if local_folder_path[0 : len(excluded_folder_path)] == excluded_folder_path:
+        if (
+            local_folder_path_with_slash[0 : len(excluded_folder_path)]
+            == excluded_folder_path
+        ):
             print("exc", remote_file_path)
             return True
     return False

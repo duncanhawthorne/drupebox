@@ -17,7 +17,7 @@ def action_locally_deleted_files():
 def action_folder(remote_folder_path):
     fyi(remote_folder_path)
 
-    local_folder_path = path_join(dropbox_local_path, (remote_folder_path + "/")[1:])
+    local_folder_path = path_join(dropbox_local_path, remote_folder_path)
     if is_excluded_folder(local_folder_path):
         return
 
@@ -31,9 +31,7 @@ def action_folder(remote_folder_path):
             action_folder(remote_folder_path)
             return
         remote_file_path = remote_item.path_display
-        local_file_path = path_join(dropbox_local_path, remote_file_path[1:])
-        if not is_file(remote_item):
-            local_file_path = add_trailing_slash(local_file_path)
+        local_file_path = path_join(dropbox_local_path, remote_file_path)
         if skip(local_file_path) or is_excluded_folder(local_file_path):
             continue
 
@@ -70,9 +68,6 @@ def action_folder(remote_folder_path):
             return
         remote_file_path = db(path_join(remote_folder_path, local_item))
         local_file_path = path_join(local_folder_path, local_item)
-
-        if os.path.isdir(local_file_path):
-            local_file_path = add_trailing_slash(local_file_path)
 
         if skip(local_file_path) or is_excluded_folder(local_file_path):
             continue
