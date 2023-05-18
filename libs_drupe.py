@@ -33,7 +33,7 @@ def path_join(*paths):
     paths_list = list(paths)
     # enable joining /X with /Y to form /X/Y, given that os.path.join would just produce /Y
     for i in range(len(paths_list)):
-        if i > 0 and len(paths_list[i]) > 0 and paths_list[i][0] == "/":
+        if i > 0:
             paths_list[i] = paths_list[i].lstrip("/")
     return unix_slash(os.path.join(*tuple(paths_list)))
 
