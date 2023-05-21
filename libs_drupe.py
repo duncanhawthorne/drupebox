@@ -6,6 +6,7 @@ import time
 import dropbox
 from send2trash import send2trash
 from datetime import datetime
+from configobj import ConfigObj
 
 
 """
@@ -78,9 +79,12 @@ def get_remote_file_path_of_local_file_path(local_file_path):
     return db(local_file_path[len(dropbox_local_path) :])
 
 
-def get_config_real():
-    from configobj import ConfigObj
+def get_containing_folder_path(file_path):
+    # rstrip for safety
+    return path_join(*tuple(file_path.rstrip("/").split("/")[0:-1]))
 
+
+def get_config_real():
     if not path_exists(path_join(home, ".config")):
         os.makedirs(path_join(home, ".config"))
     config_filename = path_join(home, ".config", "drupebox")
@@ -193,13 +197,13 @@ def get_live_tree():
 
 def store_tree(tree):
     tree = "\n".join(tree)
-    with open(drupebox_cache_store_path, "wb") as f:
+    with open(drupebox_cache_file_list_path, "wb") as f:
         f.write(bytes(tree.encode()))
 
 
 def load_tree():
-    if os.path.exists(drupebox_cache_store_path):
-        last_tree = open(drupebox_cache_store_path, "r").read().split("\n")
+    if os.path.exists(drupebox_cache_file_list_path):
+        last_tree = open(drupebox_cache_file_list_path, "r").read().split("\n")
     else:
         last_tree = [""]
     return last_tree
@@ -296,9 +300,7 @@ def remote_modified_time(remote_item):
 
 
 def fix_local_time(remote_file_path):
-    remote_folder_path = db(
-        path_join(*tuple(remote_file_path.split("/")[0:-1]))
-    )  # path excluding file, i.e. just to the folder
+    remote_folder_path = db(get_containing_folder_path(remote_file_path))
     note("Fix local time for file")
     remote_folder = db_client.files_list_folder(remote_folder_path).entries
     for remote_file in remote_folder:
@@ -333,7 +335,8 @@ def skip(local_file_path):
     if local_item in [".DS_Store", "._.DS_Store", "DG1__DS_DIR_HDR", "DG1__DS_VOL_HDR"]:
         fyi_ignore(local_item)
         return True
-
+    if is_excluded_folder(local_file_path):
+        return True
     return False
 
 
@@ -361,23 +364,32 @@ def local_item_not_found_at_remote(remote_folder, remote_file_path):
     return unnaccounted_local_file
 
 
-def store_live_cursor():
-    cursor = db_client.files_list_folder_get_latest_cursor("", recursive=True).cursor
-    result = cursor + "\n" + str(time.time())
-    with open(drupebox_cache_cursor_path, "wb") as f:
-        f.write(bytes(result.encode()))
-
-
-def load_cursor():
-    if os.path.exists(drupebox_cache_cursor_path):
-        cursor = open(drupebox_cache_cursor_path, "r").read().split("\n")
+def load_last_state():
+    config_filename = drupebox_cache_last_state_path
+    if not path_exists(config_filename):
+        config = ConfigObj()
+        config.filename = config_filename
+        config["cursor_from_last_run"] = ""
+        config["time_from_last_run"] = 0
+        config["excluded_folder_paths_from_last_run"] = []
     else:
-        cursor = ["", "0"]
-    cursor = [cursor[0], float(cursor[1])]
-    return cursor
+        config = ConfigObj(config_filename)
+    return config
 
 
-def determine_remotely_deleted_files(cursor):
+def save_last_state():
+    config_filename = drupebox_cache_last_state_path
+    config = ConfigObj(config_filename)
+    config["cursor_from_last_run"] = db_client.files_list_folder_get_latest_cursor(
+        "", recursive=True
+    ).cursor
+    config["time_from_last_run"] = time.time()
+    config["excluded_folder_paths_from_last_run"] = excluded_folder_paths
+    config.write()
+
+
+def determine_remotely_deleted_files():
+    cursor = last_state["cursor_from_last_run"]
     fyi("Scanning for any remotely deleted files since last Drupebox run")
     deleted_files = []
     if cursor != "":
@@ -399,13 +411,17 @@ if sys.platform != "win32":
 else:
     drupebox_cache = add_trailing_slash(path_join(home, ".config"))
 
-drupebox_cache_store_path = path_join(drupebox_cache, "drupebox_last_seen_files")
-drupebox_cache_cursor_path = path_join(drupebox_cache, "drupebox_cursor")
+drupebox_cache_file_list_path = path_join(drupebox_cache, "drupebox_last_seen_files")
+drupebox_cache_last_state_path = path_join(drupebox_cache, "drupebox_last_state")
 
 config = get_config()
 
 dropbox_local_path = config["dropbox_local_path"]
 excluded_folder_paths = config["excluded_folder_paths"]
+
+file_tree_from_last_run = load_tree()
+last_state = load_last_state()
+time_from_last_run = last_state["time_from_last_run"]
 
 db_client = dropbox.Dropbox(
     app_key=config["app_key"], oauth2_refresh_token=config["refresh_token"]
