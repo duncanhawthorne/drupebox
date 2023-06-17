@@ -374,6 +374,7 @@ def load_last_state():
         config["excluded_folder_paths_from_last_run"] = []
     else:
         config = ConfigObj(config_filename)
+        config["time_from_last_run"] = float(config["time_from_last_run"])
     return config
 
 
