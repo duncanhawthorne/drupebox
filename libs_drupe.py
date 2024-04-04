@@ -5,7 +5,7 @@ import sys
 import time
 import dropbox
 from send2trash import send2trash
-from datetime import datetime
+from datetime import datetime, timezone
 from configobj import ConfigObj
 
 
@@ -176,7 +176,7 @@ def config_ok_to_delete():
 def get_live_tree():
     # get full list of files in the Drupebox folder
     tree = []
-    for (root, dirs, files) in os.walk(
+    for root, dirs, files in os.walk(
         dropbox_local_path, topdown=True, followlinks=True
     ):
         root = unix_slash(root)  # format with forward slashes on all plaforms
@@ -273,13 +273,12 @@ def remote_delete(local_file_path):
         note("Tried to delete file on dropbox, but it was not there")
 
 
-def unix_time(readable_time):
-    return time.mktime(readable_time.timetuple())
-
-
 def readable_time(unix_time):
-    return datetime.fromtimestamp(float(unix_time)).strftime(
-        "%a, %d %b %Y %H:%M:%S +0000"
+    return (
+        datetime.utcfromtimestamp(float(unix_time)).strftime(
+            "%a, %d %b %Y %H:%M:%S +0000"
+        )
+        + " UTC"
     )
 
 
@@ -296,7 +295,12 @@ def local_modified_time(local_file_path):
 
 
 def remote_modified_time(remote_item):
-    return unix_time(remote_item.client_modified)
+    db_naive_time = remote_item.client_modified
+    a = db_naive_time
+    db_utc_time = datetime(
+        a.year, a.month, a.day, a.hour, a.minute, a.second, tzinfo=timezone.utc
+    )
+    return db_utc_time.timestamp()
 
 
 def fix_local_time(remote_file_path):
@@ -306,13 +310,13 @@ def fix_local_time(remote_file_path):
     for remote_file in remote_folder:
         if remote_file.path_display == remote_file_path:
             # matched the file we are looking for
-            file_modified_time = remote_file.client_modified
+            file_modified_time = remote_modified_time(remote_file)
             local_file_path = path_join(dropbox_local_path, remote_file_path[1:])
             os.utime(
                 local_file_path,
                 (
-                    int(unix_time(file_modified_time)),
-                    int(unix_time(file_modified_time)),
+                    int(file_modified_time),
+                    int(file_modified_time),
                 ),
             )
             return  # found file so no further looping required
