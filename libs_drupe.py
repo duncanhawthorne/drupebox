@@ -203,7 +203,8 @@ def store_tree(tree):
 
 def load_tree():
     if os.path.exists(drupebox_cache_file_list_path):
-        last_tree = open(drupebox_cache_file_list_path, "r").read().split("\n")
+        with open(drupebox_cache_file_list_path, "r") as f:
+            last_tree = f.read().split("\n")
     else:
         last_tree = [""]
     return last_tree
@@ -304,22 +305,17 @@ def remote_modified_time(remote_item):
 
 
 def fix_local_time(remote_file_path):
-    remote_folder_path = db(get_containing_folder_path(remote_file_path))
     note("Fix local time for file")
-    remote_folder = db_client.files_list_folder(remote_folder_path).entries
-    for remote_file in remote_folder:
-        if remote_file.path_display == remote_file_path:
-            # matched the file we are looking for
-            file_modified_time = remote_modified_time(remote_file)
-            local_file_path = path_join(dropbox_local_path, remote_file_path[1:])
-            os.utime(
-                local_file_path,
-                (
-                    int(file_modified_time),
-                    int(file_modified_time),
-                ),
-            )
-            return  # found file so no further looping required
+    remote_file = db_client.files_get_metadata(remote_file_path)
+    file_modified_time = remote_modified_time(remote_file)
+    local_file_path = path_join(dropbox_local_path, remote_file_path[1:])
+    os.utime(
+        local_file_path,
+        (
+            int(file_modified_time),
+            int(file_modified_time),
+        ),
+    )
 
 
 def skip(local_file_path):
