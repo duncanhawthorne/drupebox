@@ -1,0 +1,1 @@
+This is an open-source app and does not collect any personal data. All data is processed on the user's device and is handled through the official Dropbox API. No information is stored, transmitted, or sold by the app's developer.
