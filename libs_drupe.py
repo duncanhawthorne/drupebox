@@ -10,7 +10,7 @@ from configobj import ConfigObj
 
 
 """
-Variables in the following fomrats
+Variables in the following formats
 remote_file_path -> dropbox format
 remote_folder_path -> dropbox format (for the avoidance of doubt, no trailing slash)
 local_file_path -> posix format, no trailing slash
@@ -18,8 +18,27 @@ local_folder_path -> posix format, no trailing slash
 """
 
 
+APP_NAME = "drupebox"
+# To create new app key:
+# Go to https://www.dropbox.com/developers/apps
+# Click "Create App",
+# Click "Scoped access" and "App folder"
+# Enter a name for your App and click Create app
+# Go to the Permissions tab
+# Check "files.content.write" and "files.content.read"
+# Click "Submit"
+# On the Settings tab, copy the App key
+# Update the APP_KEY variable below to your App key
+APP_KEY = "1skff241na3x0at"
+MAX_FILE_SIZE = 10000000
+
+
 def note(text):
     print(">>>", text)
+
+
+def alert(text):
+    print("!!!", text)
 
 
 def fyi(text):
@@ -84,54 +103,47 @@ def get_containing_folder_path(file_path):
     return path_join(*tuple(file_path.rstrip("/").split("/")[0:-1]))
 
 
-def get_config_real():
-    if not path_exists(path_join(home, ".config")):
-        os.makedirs(path_join(home, ".config"))
-    config_filename = path_join(home, ".config", "drupebox")
-    if not path_exists(config_filename):
-        # First time only
-        config = ConfigObj()
-        config.filename = config_filename
+def dropbox_authorize(config):
+    flow = dropbox.DropboxOAuth2FlowNoRedirect(
+        config["app_key"], use_pkce=True, token_access_type="offline"
+    )
+    authorize_url = flow.start()
+    print(("1. Go to: " + authorize_url))
+    print('2. Click "Allow" (you might have to log in first)')
+    print("3. Copy the authorization code.")
+    code = input("Enter the authorization code here: ").strip()
+    return flow.finish(code)
 
-        # To customise this code, change the app key below
-        # Get your app key from the Dropbox developer website for your app
-        config["app_key"] = "1skff241na3x0at"
 
-        flow = dropbox.DropboxOAuth2FlowNoRedirect(
-            config["app_key"], use_pkce=True, token_access_type="offline"
-        )
-        authorize_url = flow.start()
-        print(("1. Go to: " + authorize_url))
-        print('2. Click "Allow" (you might have to log in first)')
-        print("3. Copy the authorization code.")
-        code = input("Enter the authorization code here: ").strip()
-        result = flow.finish(code)
+def make_new_config_file(config_filename):
+    config = ConfigObj()
+    config.filename = config_filename
 
-        config["refresh_token"] = result.refresh_token
-        config["dropbox_local_path"] = unix_slash(
-            input(
-                "Enter dropbox local path (or press enter for "
-                + path_join(home, "Dropbox")
-                + "/) "
-            ).strip()
-        )
-        if config["dropbox_local_path"] == "":
-            config["dropbox_local_path"] = path_join(home, "Dropbox")
-        config["dropbox_local_path"] = add_trailing_slash(config["dropbox_local_path"])
-        if not path_exists(config["dropbox_local_path"]):
-            os.makedirs(config["dropbox_local_path"])
-        config["max_file_size"] = 10000000
-        config["excluded_folder_paths"] = [
-            "/home/pi/SUPER_SECRET_LOCATION_1/",
-            "/home/pi/SUPER SECRET LOCATION 2/",
-        ]
-        config["really_delete_local_files"] = False
-        config.write()
+    config["app_key"] = APP_KEY
+    config["refresh_token"] = dropbox_authorize(config).refresh_token
 
-    config = ConfigObj(config_filename)
+    config["dropbox_local_path"] = unix_slash(
+        input(
+            "Enter dropbox local path (or press enter for "
+            + path_join(home, "Dropbox")
+            + "/) "
+        ).strip()
+    )
+    if config["dropbox_local_path"] == "":
+        config["dropbox_local_path"] = path_join(home, "Dropbox")
+    config["dropbox_local_path"] = add_trailing_slash(config["dropbox_local_path"])
+    if not path_exists(config["dropbox_local_path"]):
+        os.makedirs(config["dropbox_local_path"])
+    config["max_file_size"] = MAX_FILE_SIZE
+    config["excluded_folder_paths"] = [
+        "/home/pi/SUPER_SECRET_LOCATION_1/",
+        "/home/pi/SUPER SECRET LOCATION 2/",
+    ]
+    config["really_delete_local_files"] = False
+    config.write()
 
-    # Sanitize config
 
+def sanitize_config(config):
     # format dropbox local path with forward slashes on all platforms and end with forward slash to ensure prefix-free
     if config["dropbox_local_path"] != add_trailing_slash(config["dropbox_local_path"]):
         config["dropbox_local_path"] = add_trailing_slash(config["dropbox_local_path"])
@@ -152,6 +164,19 @@ def get_config_real():
         ]
         config["excluded_folder_paths"] = excluded_folder_paths
         config.write()
+
+
+def get_config_real():
+    if not path_exists(path_join(home, ".config")):
+        os.makedirs(path_join(home, ".config"))
+    config_filename = path_join(home, ".config", APP_NAME)
+    if not path_exists(config_filename):
+        # First time only
+        make_new_config_file(config_filename)
+
+    config = ConfigObj(config_filename)
+
+    sanitize_config(config)
 
     return config
 
@@ -260,14 +285,16 @@ def download_file(remote_file_path, local_file_path):
 
 def local_delete(local_file_path):
     remote_file_path = get_remote_file_path_of_local_file_path(local_file_path)
-    if config_ok_to_delete():  # safety check that should be impossible to get to
-        print("!!!", remote_file_path)
+    if (
+        config_ok_to_delete()
+    ):  # safety check that should be impossible to get to as this is checked before calling local_delete
+        alert(remote_file_path)
         send2trash(system_slash(local_file_path))
 
 
 def remote_delete(local_file_path):
     remote_file_path = get_remote_file_path_of_local_file_path(local_file_path)
-    print("!!!", remote_file_path)
+    alert(remote_file_path)
     try:
         db_client.files_delete(remote_file_path)
     except:
@@ -411,8 +438,8 @@ if sys.platform != "win32":
 else:
     drupebox_cache = add_trailing_slash(path_join(home, ".config"))
 
-drupebox_cache_file_list_path = path_join(drupebox_cache, "drupebox_last_seen_files")
-drupebox_cache_last_state_path = path_join(drupebox_cache, "drupebox_last_state")
+drupebox_cache_file_list_path = path_join(drupebox_cache, APP_NAME + "_last_seen_files")
+drupebox_cache_last_state_path = path_join(drupebox_cache, APP_NAME + "_last_state")
 
 config = get_config()
 
