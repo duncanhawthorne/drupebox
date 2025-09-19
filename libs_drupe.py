@@ -21,7 +21,7 @@ local_folder_path -> posix format, no trailing slash
 APP_NAME = "drupebox"
 # To create new app key:
 # Go to https://www.dropbox.com/developers/apps
-# Click "Create App",
+# Click "Create App"
 # Click "Scoped access" and "App folder"
 # Enter a name for your App and click Create app
 # Go to the Permissions tab
@@ -303,7 +303,7 @@ def remote_delete(local_file_path):
 
 def readable_time(unix_time):
     return (
-        datetime.utcfromtimestamp(float(unix_time)).strftime(
+        datetime.fromtimestamp(float(unix_time), tz=timezone.utc).strftime(
             "%a, %d %b %Y %H:%M:%S +0000"
         )
         + " UTC"
@@ -424,7 +424,7 @@ def determine_remotely_deleted_files():
         for delta in deltas:
             if isinstance(delta, dropbox.files.DeletedMetadata):
                 deleted_files.append(delta.path_display)
-    if deleted_files != []:
+    if deleted_files: #test not empty
         note("The following files were deleted on Dropbox since last run")
         for deleted_file in deleted_files:
             note(deleted_file)
