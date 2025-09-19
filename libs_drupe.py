@@ -233,17 +233,18 @@ def store_tree(tree):
 
 
 def load_tree():
-    if os.path.exists(drupebox_cache_file_list_path):
-        with open(drupebox_cache_file_list_path, "r") as f:
-            last_tree = f.read().split("\n")
-    else:
-        last_tree = [""]
-    return last_tree
+    if not os.path.exists(drupebox_cache_file_list_path):
+        return []
+    with open(drupebox_cache_file_list_path, "r") as f:
+        content = f.read()
+        if not content:
+            return []
+        return content.split("\n")
 
 
 def determine_locally_deleted_files(tree_now, tree_last):
     deleted = []
-    if tree_last == [""]:
+    if tree_last == []:
         return []
     for element in tree_last:
         if not element in tree_now:
