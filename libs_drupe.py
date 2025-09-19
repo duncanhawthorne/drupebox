@@ -95,7 +95,7 @@ def db(path):
 
 
 def get_remote_file_path_of_local_file_path(local_file_path):
-    return db(local_file_path[len(dropbox_local_path):])
+    return db(local_file_path[len(dropbox_local_path) :])
 
 
 def get_containing_folder_path(file_path):
@@ -302,8 +302,12 @@ def remote_delete(local_file_path):
     try:
         db_client.files_delete(remote_file_path)
     except dropbox.exceptions.ApiError as err:
-        if (hasattr(err.error, 'is_path_lookup') and err.error.is_path_lookup() and
-                hasattr(err.error.get_path_lookup(), 'is_not_found') and err.error.get_path_lookup().is_not_found()):
+        if (
+            hasattr(err.error, "is_path_lookup")
+            and err.error.is_path_lookup()
+            and hasattr(err.error.get_path_lookup(), "is_not_found")
+            and err.error.get_path_lookup().is_not_found()
+        ):
             note("Tried to delete file on dropbox, but it was not there")
         else:
             note("Unexpected Dropbox API error on delete: " + str(err))
