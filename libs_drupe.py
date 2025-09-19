@@ -387,11 +387,10 @@ def is_excluded_folder(local_folder_path):
 
 
 def local_item_not_found_at_remote(remote_folder, remote_file_path):
-    unaccounted_local_file = True
     for remote_item in remote_folder:
         if remote_item.path_display == remote_file_path:
-            unaccounted_local_file = False
-    return unaccounted_local_file
+            return False
+    return True
 
 
 def load_last_state():
