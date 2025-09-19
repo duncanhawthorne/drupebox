@@ -354,18 +354,14 @@ def fix_local_time(remote_file, remote_file_path):
 
 def skip(local_file_path):
     local_item = local_file_path.rstrip("/").split("/")[-1]  # rstrip for safety only
-    if local_item.startswith(".fuse_hidden"):
-        fyi_ignore("fuse hidden files")
-        return True
-    if local_item.endswith(".pyc"):
-        fyi_ignore(".pyc files")
-        return True
-    if local_item.endswith("__pycache__"):
-        fyi_ignore("__pycache__")
-        return True
-    if local_item.endswith(".git"):
-        fyi_ignore(".git")
-        return True
+    for prefix in [".fuse_hidden"]:
+        if local_item.startswith(prefix):
+            fyi_ignore(prefix + " files")
+            return True
+    for suffix in [".pyc", "__pycache__", ".git"]:
+        if local_item.endswith(suffix):
+            fyi_ignore(suffix + " files")
+            return True
     if local_item in [".DS_Store", "._.DS_Store", "DG1__DS_DIR_HDR", "DG1__DS_VOL_HDR"]:
         fyi_ignore(local_item)
         return True
