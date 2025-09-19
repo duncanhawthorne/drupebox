@@ -103,9 +103,9 @@ def get_containing_folder_path(file_path):
     return path_join(*tuple(file_path.rstrip("/").split("/")[0:-1]))
 
 
-def dropbox_authorize(config):
+def dropbox_authorize(config_app_key):
     flow = dropbox.DropboxOAuth2FlowNoRedirect(
-        config["app_key"], use_pkce=True, token_access_type="offline"
+        config_app_key, use_pkce=True, token_access_type="offline"
     )
     authorize_url = flow.start()
     print(("1. Go to: " + authorize_url))
@@ -116,54 +116,54 @@ def dropbox_authorize(config):
 
 
 def make_new_config_file(config_filename):
-    config = ConfigObj()
-    config.filename = config_filename
+    config_tmp = ConfigObj()
+    config_tmp.filename = config_filename
 
-    config["app_key"] = APP_KEY
-    config["refresh_token"] = dropbox_authorize(config).refresh_token
+    config_tmp["app_key"] = APP_KEY
+    config_tmp["refresh_token"] = dropbox_authorize(config_tmp["app_key"]).refresh_token
 
-    config["dropbox_local_path"] = unix_slash(
+    config_tmp["dropbox_local_path"] = unix_slash(
         input(
             "Enter dropbox local path (or press enter for "
             + path_join(home, "Dropbox")
             + "/) "
         ).strip()
     )
-    if config["dropbox_local_path"] == "":
-        config["dropbox_local_path"] = path_join(home, "Dropbox")
-    config["dropbox_local_path"] = add_trailing_slash(config["dropbox_local_path"])
-    if not path_exists(config["dropbox_local_path"]):
-        os.makedirs(config["dropbox_local_path"])
-    config["max_file_size"] = MAX_FILE_SIZE
-    config["excluded_folder_paths"] = [
+    if config_tmp["dropbox_local_path"] == "":
+        config_tmp["dropbox_local_path"] = path_join(home, "Dropbox")
+    config_tmp["dropbox_local_path"] = add_trailing_slash(config_tmp["dropbox_local_path"])
+    if not path_exists(config_tmp["dropbox_local_path"]):
+        os.makedirs(config_tmp["dropbox_local_path"])
+    config_tmp["max_file_size"] = MAX_FILE_SIZE
+    config_tmp["excluded_folder_paths"] = [
         "/home/pi/SUPER_SECRET_LOCATION_1/",
         "/home/pi/SUPER SECRET LOCATION 2/",
     ]
-    config["really_delete_local_files"] = False
-    config.write()
+    config_tmp["really_delete_local_files"] = False
+    config_tmp.write()
 
 
-def sanitize_config(config):
+def sanitize_config(config_tmp):
     # format dropbox local path with forward slashes on all platforms and end with forward slash to ensure prefix-free
-    if config["dropbox_local_path"] != add_trailing_slash(config["dropbox_local_path"]):
-        config["dropbox_local_path"] = add_trailing_slash(config["dropbox_local_path"])
-        config.write()
+    if config_tmp["dropbox_local_path"] != add_trailing_slash(config_tmp["dropbox_local_path"]):
+        config_tmp["dropbox_local_path"] = add_trailing_slash(config_tmp["dropbox_local_path"])
+        config_tmp.write()
 
     # format excluded paths with forward slashes on all platforms and end with forward slash to ensure prefix-free
     excluded_folder_paths_sanitize = False
-    for excluded_folder_path in config["excluded_folder_paths"]:
+    for excluded_folder_path in config_tmp["excluded_folder_paths"]:
         if add_trailing_slash(excluded_folder_path) != excluded_folder_path:
             excluded_folder_paths_sanitize = True
             break
 
     if excluded_folder_paths_sanitize:
-        excluded_folder_paths = []
-        excluded_folder_paths[:] = [
+        excluded_folder_paths_tmp = []
+        excluded_folder_paths_tmp[:] = [
             add_trailing_slash(excluded_folder_path)
-            for excluded_folder_path in config["excluded_folder_paths"]
+            for excluded_folder_path in config_tmp["excluded_folder_paths"]
         ]
-        config["excluded_folder_paths"] = excluded_folder_paths
-        config.write()
+        config_tmp["excluded_folder_paths"] = excluded_folder_paths_tmp
+        config_tmp.write()
 
 
 def get_config_real():
@@ -174,11 +174,11 @@ def get_config_real():
         # First time only
         make_new_config_file(config_filename)
 
-    config = ConfigObj(config_filename)
+    config_tmp = ConfigObj(config_filename)
 
-    sanitize_config(config)
+    sanitize_config(config_tmp)
 
-    return config
+    return config_tmp
 
 
 def get_config():
@@ -204,7 +204,7 @@ def get_live_tree():
     for root, dirs, files in os.walk(
         dropbox_local_path, topdown=True, followlinks=True
     ):
-        root = unix_slash(root)  # format with forward slashes on all plaforms
+        root = unix_slash(root)  # format with forward slashes on all platforms
         dirs[:] = [
             d
             for d in dirs
@@ -367,7 +367,7 @@ def skip(local_file_path):
 
 
 def is_excluded_folder(local_folder_path):
-    # forwad slash at end of path ensures prefix-free
+    # forward slash at end of path ensures prefix-free
     local_folder_path_with_slash = add_trailing_slash(local_folder_path)
     remote_file_path = get_remote_file_path_of_local_file_path(
         local_folder_path_with_slash
@@ -383,36 +383,36 @@ def is_excluded_folder(local_folder_path):
 
 
 def local_item_not_found_at_remote(remote_folder, remote_file_path):
-    unnaccounted_local_file = True
+    unaccounted_local_file = True
     for remote_item in remote_folder:
         if remote_item.path_display == remote_file_path:
-            unnaccounted_local_file = False
-    return unnaccounted_local_file
+            unaccounted_local_file = False
+    return unaccounted_local_file
 
 
 def load_last_state():
     config_filename = drupebox_cache_last_state_path
     if not path_exists(config_filename):
-        config = ConfigObj()
-        config.filename = config_filename
-        config["cursor_from_last_run"] = ""
-        config["time_from_last_run"] = 0
-        config["excluded_folder_paths_from_last_run"] = []
+        config_tmp = ConfigObj()
+        config_tmp.filename = config_filename
+        config_tmp["cursor_from_last_run"] = ""
+        config_tmp["time_from_last_run"] = 0
+        config_tmp["excluded_folder_paths_from_last_run"] = []
     else:
-        config = ConfigObj(config_filename)
-        config["time_from_last_run"] = float(config["time_from_last_run"])
-    return config
+        config_tmp = ConfigObj(config_filename)
+        config_tmp["time_from_last_run"] = float(config_tmp["time_from_last_run"])
+    return config_tmp
 
 
 def save_last_state():
     config_filename = drupebox_cache_last_state_path
-    config = ConfigObj(config_filename)
-    config["cursor_from_last_run"] = db_client.files_list_folder_get_latest_cursor(
+    config_tmp = ConfigObj(config_filename)
+    config_tmp["cursor_from_last_run"] = db_client.files_list_folder_get_latest_cursor(
         "", recursive=True
     ).cursor
-    config["time_from_last_run"] = time.time()
-    config["excluded_folder_paths_from_last_run"] = excluded_folder_paths
-    config.write()
+    config_tmp["time_from_last_run"] = time.time()
+    config_tmp["excluded_folder_paths_from_last_run"] = excluded_folder_paths
+    config_tmp.write()
 
 
 def determine_remotely_deleted_files():
