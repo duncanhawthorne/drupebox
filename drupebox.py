@@ -58,7 +58,7 @@ def action_folder(remote_folder_path):
             note("Local file has been updated, so upload")
             upload(local_file_path, remote_file_path)
 
-    # Go throgh local items
+    # Go through local items
     for local_item in os.listdir(local_folder_path):
         if time.time() > remote_folder_checked_time + 60:
             note("Last checked in with server over 60 seconds ago, refreshing")

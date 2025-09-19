@@ -131,7 +131,9 @@ def make_new_config_file(config_filename):
     )
     if config_tmp["dropbox_local_path"] == "":
         config_tmp["dropbox_local_path"] = path_join(home, "Dropbox")
-    config_tmp["dropbox_local_path"] = add_trailing_slash(config_tmp["dropbox_local_path"])
+    config_tmp["dropbox_local_path"] = add_trailing_slash(
+        config_tmp["dropbox_local_path"]
+    )
     if not path_exists(config_tmp["dropbox_local_path"]):
         os.makedirs(config_tmp["dropbox_local_path"])
     config_tmp["max_file_size"] = MAX_FILE_SIZE
@@ -145,8 +147,12 @@ def make_new_config_file(config_filename):
 
 def sanitize_config(config_tmp):
     # format dropbox local path with forward slashes on all platforms and end with forward slash to ensure prefix-free
-    if config_tmp["dropbox_local_path"] != add_trailing_slash(config_tmp["dropbox_local_path"]):
-        config_tmp["dropbox_local_path"] = add_trailing_slash(config_tmp["dropbox_local_path"])
+    if config_tmp["dropbox_local_path"] != add_trailing_slash(
+        config_tmp["dropbox_local_path"]
+    ):
+        config_tmp["dropbox_local_path"] = add_trailing_slash(
+            config_tmp["dropbox_local_path"]
+        )
         config_tmp.write()
 
     # format excluded paths with forward slashes on all platforms and end with forward slash to ensure prefix-free
@@ -424,7 +430,7 @@ def determine_remotely_deleted_files():
         for delta in deltas:
             if isinstance(delta, dropbox.files.DeletedMetadata):
                 deleted_files.append(delta.path_display)
-    if deleted_files: #test not empty
+    if deleted_files:  # test not empty
         note("The following files were deleted on Dropbox since last run")
         for deleted_file in deleted_files:
             note(deleted_file)
