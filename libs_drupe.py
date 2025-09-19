@@ -75,7 +75,7 @@ def system_slash(path):
 def add_trailing_slash(path):
     # folder in format with trailing forward slash
     path = unix_slash(path)
-    if path[-1] != "/":
+    if not path.endswith("/"):
         path = path + "/"
     return path
 
@@ -87,7 +87,7 @@ def db(path):
     if path == "/":
         return ""
     else:
-        if path[0] != "/":
+        if not path.startswith("/"):
             path1 = "/" + path
         else:
             path1 = path
@@ -95,7 +95,7 @@ def db(path):
 
 
 def get_remote_file_path_of_local_file_path(local_file_path):
-    return db(local_file_path[len(dropbox_local_path) :])
+    return db(local_file_path[len(dropbox_local_path):])
 
 
 def get_containing_folder_path(file_path):
@@ -188,12 +188,12 @@ def get_config_real():
 
 
 def get_config():
-    if get_config.cache == "":  # First run
+    if get_config.cache is None:  # First run
         get_config.cache = get_config_real()
     return get_config.cache
 
 
-get_config.cache = ""
+get_config.cache = None
 
 
 def config_ok_to_delete():
@@ -254,13 +254,13 @@ def determine_locally_deleted_files(tree_now, tree_last):
 def upload(local_file_path, remote_file_path):
     if os.path.getsize(local_file_path) < int(config["max_file_size"]):
         print("uuu", remote_file_path)
-        f = open(local_file_path, "rb")
-        remote_file = db_client.files_upload(
-            f.read(),
-            remote_file_path,
-            mute=True,
-            mode=dropbox.files.WriteMode("overwrite", None),
-        )
+        with open(local_file_path, "rb") as f:
+            remote_file = db_client.files_upload(
+                f.read(),
+                remote_file_path,
+                mute=True,
+                mode=dropbox.files.WriteMode("overwrite", None),
+            )
         fix_local_time(remote_file, remote_file_path)
     else:
         note("File above max size, ignoring: " + remote_file_path)
@@ -273,10 +273,7 @@ def create_remote_folder(remote_file_path):
 
 def create_local_folder(remote_file_path, local_file_path):
     print("ccc", remote_file_path)
-    if not path_exists(local_file_path):
-        os.makedirs(local_file_path)
-    else:
-        "Modification time on a folder does not matter - no action"
+    os.makedirs(local_file_path, exist_ok=True)
 
 
 def download_file(remote_file_path, local_file_path):
@@ -303,8 +300,12 @@ def remote_delete(local_file_path):
     alert(remote_file_path)
     try:
         db_client.files_delete(remote_file_path)
-    except:
-        note("Tried to delete file on dropbox, but it was not there")
+    except dropbox.exceptions.ApiError as err:
+        if (hasattr(err.error, 'is_path_lookup') and err.error.is_path_lookup() and
+                hasattr(err.error.get_path_lookup(), 'is_not_found') and err.error.get_path_lookup().is_not_found()):
+            note("Tried to delete file on dropbox, but it was not there")
+        else:
+            note("Unexpected Dropbox API error on delete: " + str(err))
 
 
 def readable_time(unix_time):
@@ -379,10 +380,7 @@ def is_excluded_folder(local_folder_path):
         local_folder_path_with_slash
     )
     for excluded_folder_path in excluded_folder_paths:
-        if (
-            local_folder_path_with_slash[0 : len(excluded_folder_path)]
-            == excluded_folder_path
-        ):
+        if local_folder_path_with_slash.startswith(excluded_folder_path):
             print("exc", remote_file_path)
             return True
     return False
