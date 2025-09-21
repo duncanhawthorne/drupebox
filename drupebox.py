@@ -22,7 +22,7 @@ def action_folder(remote_folder_path):
 
     local_folder_path = path_join(dropbox_local_path, remote_folder_path)
 
-    remote_folder = db_client.files_list_folder(remote_folder_path).entries
+    remote_folder = get_remote_folder(remote_folder_path)
     remote_folder_checked_time = time.time()
 
     # Go through remote items
@@ -37,9 +37,9 @@ def action_folder(remote_folder_path):
             continue
 
         if (
-            not path_exists(local_file_path)
-            or is_file(remote_item)
-            and remote_modified_time(remote_item) > local_modified_time(local_file_path)
+                not path_exists(local_file_path)
+                or is_file(remote_item)
+                and remote_modified_time(remote_item) > local_modified_time(local_file_path)
         ):
             if path_exists(local_file_path):
                 note("Found updated file on remote Dropbox, so download")
@@ -52,7 +52,7 @@ def action_folder(remote_folder_path):
                 create_local_folder(remote_file_path, local_file_path)
 
         elif is_file(remote_item) and local_modified_time(
-            local_file_path
+                local_file_path
         ) > remote_modified_time(remote_item):
 
             note("Local file has been updated, so upload")
@@ -71,10 +71,11 @@ def action_folder(remote_folder_path):
             continue
         if local_item_not_found_at_remote(remote_folder, remote_file_path):
             if (
-                time_from_last_run > local_modified_time(local_file_path)
-                and time_from_last_run > time.time() - 60 * 60 * 2 # safety to ensure can trust last cache
-                and remote_file_path in remotely_deleted_files
-                and config_ok_to_delete()
+                    time_from_last_run > local_modified_time(local_file_path)
+                    and time_from_last_run
+                    > time.time() - 60 * 60 * 2  # safety to ensure can trust last cache
+                    and remote_file_path in remotely_deleted_files
+                    and config_ok_to_delete()
             ):
                 note("Found local item that is deleted on remote Dropbox, so delete")
                 local_delete(local_file_path)
