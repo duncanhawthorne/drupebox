@@ -1,26 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import time
 from datetime import datetime, timezone
 
 import os
 import dropbox
 from send2trash import send2trash
 
-from cache import load_last_state
+from cache import last_state
 from config import (
     config,
     config_ok_to_delete,
     dropbox_local_path,
-    excluded_folder_paths,
+    get_remote_file_path_of_local_file_path,
 )
-from local_tree import load_tree
-from log import note, alert, fyi_ignore, fyi
+from log import note, alert, fyi
 from paths import (
     system_slash,
-    get_remote_file_path_of_local_file_path,
     path_join,
-    add_trailing_slash,
+    db,
 )
 
 """
@@ -93,15 +90,6 @@ def remote_delete(local_file_path):
             note("Unexpected Dropbox API error on delete: " + str(err))
 
 
-def readable_time(unix_time):
-    return (
-        datetime.fromtimestamp(float(unix_time), tz=timezone.utc).strftime(
-            "%a, %d %b %Y %H:%M:%S +0000"
-        )
-        + " UTC"
-    )
-
-
 def is_file(remote_item):
     return not isinstance(remote_item, dropbox.files.FolderMetadata)
 
@@ -130,37 +118,6 @@ def fix_local_time(remote_file, remote_file_path):
             int(file_modified_time),
         ),
     )
-
-
-def skip(local_file_path):
-    local_item = local_file_path.rstrip("/").split("/")[-1]  # rstrip for safety only
-    for prefix in [".fuse_hidden"]:
-        if local_item.startswith(prefix):
-            fyi_ignore(prefix + " files")
-            return True
-    for suffix in [".pyc", "__pycache__", ".git"]:
-        if local_item.endswith(suffix):
-            fyi_ignore(suffix + " files")
-            return True
-    if local_item in [".DS_Store", "._.DS_Store", "DG1__DS_DIR_HDR", "DG1__DS_VOL_HDR"]:
-        fyi_ignore(local_item)
-        return True
-    if is_excluded_folder(local_file_path):
-        return True
-    return False
-
-
-def is_excluded_folder(local_folder_path):
-    # forward slash at end of path ensures prefix-free
-    local_folder_path_with_slash = add_trailing_slash(local_folder_path)
-    remote_file_path = get_remote_file_path_of_local_file_path(
-        local_folder_path_with_slash
-    )
-    for excluded_folder_path in excluded_folder_paths:
-        if local_folder_path_with_slash.startswith(excluded_folder_path):
-            print("exc", remote_file_path)
-            return True
-    return False
 
 
 def get_remote_folder(remote_folder_path):
@@ -193,10 +150,6 @@ def determine_remotely_deleted_files():
 def get_last_state():
     return db_client.files_list_folder_get_latest_cursor("", recursive=True).cursor
 
-
-file_tree_from_last_run = load_tree()
-last_state = load_last_state()
-time_from_last_run = last_state["time_from_last_run"]
 
 db_client = dropbox.Dropbox(
     app_key=config["app_key"], oauth2_refresh_token=config["refresh_token"]

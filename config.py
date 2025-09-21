@@ -6,8 +6,15 @@ import os
 import dropbox
 from configobj import ConfigObj
 
-from log import note
-from paths import unix_slash, path_join, home, add_trailing_slash, path_exists
+from log import note, fyi_ignore
+from paths import (
+    unix_slash,
+    path_join,
+    home,
+    add_trailing_slash,
+    path_exists,
+    db,
+)
 
 APP_NAME = "drupebox"
 # To create new app key:
@@ -123,6 +130,41 @@ def config_ok_to_delete():
         return False
     else:
         return True
+
+
+def skip(local_file_path):
+    local_item = local_file_path.rstrip("/").split("/")[-1]  # rstrip for safety only
+    for prefix in [".fuse_hidden"]:
+        if local_item.startswith(prefix):
+            fyi_ignore(prefix + " files")
+            return True
+    for suffix in [".pyc", "__pycache__", ".git"]:
+        if local_item.endswith(suffix):
+            fyi_ignore(suffix + " files")
+            return True
+    if local_item in [".DS_Store", "._.DS_Store", "DG1__DS_DIR_HDR", "DG1__DS_VOL_HDR"]:
+        fyi_ignore(local_item)
+        return True
+    if is_excluded_folder(local_file_path):
+        return True
+    return False
+
+
+def is_excluded_folder(local_folder_path):
+    # forward slash at end of path ensures prefix-free
+    local_folder_path_with_slash = add_trailing_slash(local_folder_path)
+    remote_file_path = get_remote_file_path_of_local_file_path(
+        local_folder_path_with_slash
+    )
+    for excluded_folder_path in excluded_folder_paths:
+        if local_folder_path_with_slash.startswith(excluded_folder_path):
+            print("exc", remote_file_path)
+            return True
+    return False
+
+
+def get_remote_file_path_of_local_file_path(local_file_path):
+    return db(local_file_path[len(dropbox_local_path) :])
 
 
 config = get_config()

@@ -39,3 +39,6 @@ else:
 
 drupebox_cache_file_list_path = path_join(drupebox_cache, APP_NAME + "_last_seen_files")
 drupebox_cache_last_state_path = path_join(drupebox_cache, APP_NAME + "_last_state")
+
+last_state = load_last_state()
+time_from_last_run = last_state["time_from_last_run"]

@@ -3,8 +3,6 @@
 import os
 import sys
 
-from config import dropbox_local_path
-
 home = os.path.expanduser("~")
 
 
@@ -51,10 +49,6 @@ def db(path):
         else:
             path1 = path
     return path1.rstrip("/")
-
-
-def get_remote_file_path_of_local_file_path(local_file_path):
-    return db(local_file_path[len(dropbox_local_path) :])
 
 
 def get_containing_folder_path(file_path):

@@ -53,3 +53,6 @@ def determine_locally_deleted_files(tree_now, tree_last):
         if not element in tree_now:
             deleted.append(element)
     return deleted
+
+
+file_tree_from_last_run = load_tree()

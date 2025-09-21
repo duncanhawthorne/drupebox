@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 import os
 import time
-from cache import save_last_state
-from config import excluded_folder_paths, dropbox_local_path, config_ok_to_delete
+from cache import save_last_state, time_from_last_run
+from config import excluded_folder_paths, dropbox_local_path, config_ok_to_delete, skip
 from libs_drupe import (
-    file_tree_from_last_run,
     last_state,
     remote_delete,
     get_remote_folder,
@@ -16,18 +15,21 @@ from libs_drupe import (
     create_local_folder,
     upload,
     local_item_not_found_at_remote,
-    skip,
-    time_from_last_run,
     create_remote_folder,
     local_delete,
-    readable_time,
     determine_remotely_deleted_files,
     get_last_state,
 )
 
-from local_tree import get_live_tree, store_tree, determine_locally_deleted_files
+from local_tree import (
+    get_live_tree,
+    store_tree,
+    determine_locally_deleted_files,
+    file_tree_from_last_run,
+)
 from log import note, fyi
 from paths import path_exists, db, path_join
+from utils import readable_time
 
 
 def action_locally_deleted_files():
