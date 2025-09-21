@@ -1,6 +1,33 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from libs_drupe import *
+import os
+import time
+from cache import save_last_state
+from config import excluded_folder_paths, dropbox_local_path, config_ok_to_delete
+from libs_drupe import (
+    file_tree_from_last_run,
+    last_state,
+    remote_delete,
+    get_remote_folder,
+    is_file,
+    remote_modified_time,
+    local_modified_time,
+    download_file,
+    create_local_folder,
+    upload,
+    local_item_not_found_at_remote,
+    skip,
+    time_from_last_run,
+    create_remote_folder,
+    local_delete,
+    readable_time,
+    determine_remotely_deleted_files,
+    get_last_state,
+)
+
+from local_tree import get_live_tree, store_tree, determine_locally_deleted_files
+from log import note, fyi
+from paths import path_exists, db, path_join
 
 
 def action_locally_deleted_files():
@@ -100,6 +127,6 @@ action_locally_deleted_files()
 fyi("Syncing all other local and remote files changes")
 action_folder("")
 
-save_last_state()
+save_last_state(get_last_state())
 store_tree(get_live_tree())
 print("Drupebox sync complete at", readable_time(time.time()))
