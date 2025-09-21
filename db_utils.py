@@ -6,7 +6,7 @@ import os
 import dropbox
 from send2trash import send2trash
 
-from cache import last_state
+from state_cache import last_state
 from config import (
     config,
     config_ok_to_delete,
@@ -14,11 +14,7 @@ from config import (
     get_remote_file_path_of_local_file_path,
 )
 from log import note, alert, fyi
-from paths import (
-    system_slash,
-    path_join,
-    db,
-)
+from paths import system_slash, path_join
 
 """
 Variables in the following formats
