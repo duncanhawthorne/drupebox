@@ -94,7 +94,7 @@ def db(path):
 
 
 def get_remote_file_path_of_local_file_path(local_file_path):
-    return db(local_file_path[len(dropbox_local_path):])
+    return db(local_file_path[len(dropbox_local_path) :])
 
 
 def get_containing_folder_path(file_path):
@@ -147,7 +147,7 @@ def make_new_config_file(config_filename):
 def sanitize_config(config_tmp):
     # format dropbox local path with forward slashes on all platforms and end with forward slash to ensure prefix-free
     if config_tmp["dropbox_local_path"] != add_trailing_slash(
-            config_tmp["dropbox_local_path"]
+        config_tmp["dropbox_local_path"]
     ):
         config_tmp["dropbox_local_path"] = add_trailing_slash(
             config_tmp["dropbox_local_path"]
@@ -207,7 +207,7 @@ def get_live_tree():
     # get full list of files in the Drupebox folder
     tree = []
     for root, dirs, files in os.walk(
-            dropbox_local_path, topdown=True, followlinks=True
+        dropbox_local_path, topdown=True, followlinks=True
     ):
         root = unix_slash(root)  # format with forward slashes on all platforms
         dirs[:] = [
@@ -289,7 +289,7 @@ def download_file(remote_file_path, local_file_path):
 def local_delete(local_file_path):
     remote_file_path = get_remote_file_path_of_local_file_path(local_file_path)
     if (
-            config_ok_to_delete()
+        config_ok_to_delete()
     ):  # safety check that should be impossible to get to as this is checked before calling local_delete
         alert(remote_file_path)
         send2trash(system_slash(local_file_path))
@@ -302,10 +302,10 @@ def remote_delete(local_file_path):
         db_client.files_delete(remote_file_path)
     except dropbox.exceptions.ApiError as err:
         if (
-                hasattr(err.error, "is_path_lookup")
-                and err.error.is_path_lookup()
-                and hasattr(err.error.get_path_lookup(), "is_not_found")
-                and err.error.get_path_lookup().is_not_found()
+            hasattr(err.error, "is_path_lookup")
+            and err.error.is_path_lookup()
+            and hasattr(err.error.get_path_lookup(), "is_not_found")
+            and err.error.get_path_lookup().is_not_found()
         ):
             note("Tried to delete file on dropbox, but it was not there")
         else:
@@ -314,10 +314,10 @@ def remote_delete(local_file_path):
 
 def readable_time(unix_time):
     return (
-            datetime.fromtimestamp(float(unix_time), tz=timezone.utc).strftime(
-                "%a, %d %b %Y %H:%M:%S +0000"
-            )
-            + " UTC"
+        datetime.fromtimestamp(float(unix_time), tz=timezone.utc).strftime(
+            "%a, %d %b %Y %H:%M:%S +0000"
+        )
+        + " UTC"
     )
 
 
