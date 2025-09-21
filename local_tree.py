@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-from state_cache import drupebox_cache_file_list_path, load_last_state
+from state_cache import drupebox_cache_file_list_path
 from config import excluded_folder_paths, dropbox_local_path
 from paths import unix_slash, add_trailing_slash, path_join
 
