@@ -9,7 +9,7 @@ from config import excluded_folder_paths, APP_NAME
 from paths import path_exists, add_trailing_slash, path_join, home
 
 
-def load_last_state():
+def _load_last_state():
     config_filename = drupebox_cache_last_state_path
     if not path_exists(config_filename):
         config_tmp = ConfigObj()
@@ -33,12 +33,14 @@ def save_last_state(cursor):
 
 
 if sys.platform != "win32":
-    drupebox_cache = "/dev/shm/"
+    _drupebox_cache = "/dev/shm/"
 else:
-    drupebox_cache = add_trailing_slash(path_join(home, ".config"))
+    _drupebox_cache = add_trailing_slash(path_join(home, ".config"))
 
-drupebox_cache_file_list_path = path_join(drupebox_cache, APP_NAME + "_last_seen_files")
-drupebox_cache_last_state_path = path_join(drupebox_cache, APP_NAME + "_last_state")
+drupebox_cache_file_list_path = path_join(
+    _drupebox_cache, APP_NAME + "_last_seen_files"
+)
+drupebox_cache_last_state_path = path_join(_drupebox_cache, APP_NAME + "_last_state")
 
-last_state = load_last_state()
+last_state = _load_last_state()
 time_from_last_run = last_state["time_from_last_run"]

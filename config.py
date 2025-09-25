@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import os
-
-import dropbox
 from configobj import ConfigObj
 
+from auth import dropbox_authorize
 from log import note, fyi_ignore
 from paths import (
     unix_slash,
@@ -31,19 +30,7 @@ APP_KEY = "1skff241na3x0at"
 MAX_FILE_SIZE = 10000000
 
 
-def dropbox_authorize(config_app_key):
-    flow = dropbox.DropboxOAuth2FlowNoRedirect(
-        config_app_key, use_pkce=True, token_access_type="offline"
-    )
-    authorize_url = flow.start()
-    print(("1. Go to: " + authorize_url))
-    print('2. Click "Allow" (you might have to log in first)')
-    print("3. Copy the authorization code.")
-    code = input("Enter the authorization code here: ").strip()
-    return flow.finish(code)
-
-
-def make_new_config_file(config_filename):
+def _make_new_config_file(config_filename):
     config_tmp = ConfigObj()
     config_tmp.filename = config_filename
 
@@ -73,7 +60,7 @@ def make_new_config_file(config_filename):
     config_tmp.write()
 
 
-def sanitize_config(config_tmp):
+def _sanitize_config(config_tmp):
     # format dropbox local path with forward slashes on all platforms and end with forward slash to ensure prefix-free
     if config_tmp["dropbox_local_path"] != add_trailing_slash(
         config_tmp["dropbox_local_path"]
@@ -100,36 +87,49 @@ def sanitize_config(config_tmp):
         config_tmp.write()
 
 
-def get_config_real():
+def _get_config_real():
     if not path_exists(path_join(home, ".config")):
         os.makedirs(path_join(home, ".config"))
     config_filename = path_join(home, ".config", APP_NAME)
     if not path_exists(config_filename):
         # First time only
-        make_new_config_file(config_filename)
+        _make_new_config_file(config_filename)
 
     config_tmp = ConfigObj(config_filename)
 
-    sanitize_config(config_tmp)
+    _sanitize_config(config_tmp)
 
     return config_tmp
 
 
-def get_config():
-    if get_config.cache is None:  # First run
-        get_config.cache = get_config_real()
-    return get_config.cache
+def _get_config():
+    if _get_config.cache is None:  # First run
+        _get_config.cache = _get_config_real()
+    return _get_config.cache
 
 
-get_config.cache = None
+_get_config.cache = None
 
 
 def config_ok_to_delete():
-    if get_config()["really_delete_local_files"] != "True":
+    if _get_config()["really_delete_local_files"] != "True":
         note("Drupebox not set to delete local files, so force reupload local file")
         return False
     else:
         return True
+
+
+def _is_excluded_folder(local_folder_path):
+    # forward slash at end of path ensures prefix-free
+    local_folder_path_with_slash = add_trailing_slash(local_folder_path)
+    remote_file_path = get_remote_file_path_of_local_file_path(
+        local_folder_path_with_slash
+    )
+    for excluded_folder_path in excluded_folder_paths:
+        if local_folder_path_with_slash.startswith(excluded_folder_path):
+            print("exc", remote_file_path)
+            return True
+    return False
 
 
 def skip(local_file_path):
@@ -145,21 +145,8 @@ def skip(local_file_path):
     if local_item in [".DS_Store", "._.DS_Store", "DG1__DS_DIR_HDR", "DG1__DS_VOL_HDR"]:
         fyi_ignore(local_item)
         return True
-    if is_excluded_folder(local_file_path):
+    if _is_excluded_folder(local_file_path):
         return True
-    return False
-
-
-def is_excluded_folder(local_folder_path):
-    # forward slash at end of path ensures prefix-free
-    local_folder_path_with_slash = add_trailing_slash(local_folder_path)
-    remote_file_path = get_remote_file_path_of_local_file_path(
-        local_folder_path_with_slash
-    )
-    for excluded_folder_path in excluded_folder_paths:
-        if local_folder_path_with_slash.startswith(excluded_folder_path):
-            print("exc", remote_file_path)
-            return True
     return False
 
 
@@ -167,6 +154,6 @@ def get_remote_file_path_of_local_file_path(local_file_path):
     return db(local_file_path[len(dropbox_local_path) :])
 
 
-config = get_config()
+config = _get_config()
 dropbox_local_path = config["dropbox_local_path"]
 excluded_folder_paths = config["excluded_folder_paths"]

@@ -35,7 +35,7 @@ def store_tree(tree):
         f.write(bytes(tree.encode()))
 
 
-def load_tree():
+def _load_tree():
     if not os.path.exists(drupebox_cache_file_list_path):
         return []
     with open(drupebox_cache_file_list_path, "r") as f:
@@ -55,4 +55,4 @@ def determine_locally_deleted_files(tree_now, tree_last):
     return deleted
 
 
-file_tree_from_last_run = load_tree()
+file_tree_from_last_run = _load_tree()
