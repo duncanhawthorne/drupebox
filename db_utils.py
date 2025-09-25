@@ -10,8 +10,8 @@ from state_cache import last_state
 from config import (
     config,
     config_ok_to_delete,
-    dropbox_local_path,
-    get_remote_file_path_of_local_file_path,
+    get_remote_file_path,
+    get_local_file_path,
 )
 from log import note, alert, fyi
 from paths import system_slash, path_join
@@ -61,7 +61,7 @@ def download_file(remote_file_path, local_file_path):
 
 
 def local_delete(local_file_path):
-    remote_file_path = get_remote_file_path_of_local_file_path(local_file_path)
+    remote_file_path = get_remote_file_path(local_file_path)
     if (
         config_ok_to_delete()
     ):  # safety check that should be impossible to get to as this is checked before calling local_delete
@@ -70,7 +70,7 @@ def local_delete(local_file_path):
 
 
 def remote_delete(local_file_path):
-    remote_file_path = get_remote_file_path_of_local_file_path(local_file_path)
+    remote_file_path = get_remote_file_path(local_file_path)
     alert(remote_file_path)
     try:
         db_client.files_delete(remote_file_path)
@@ -106,7 +106,7 @@ def remote_modified_time(remote_item):
 def fix_local_time(remote_file, remote_file_path):
     note("Fix local time for file")
     file_modified_time = remote_modified_time(remote_file)
-    local_file_path = path_join(dropbox_local_path, remote_file_path[1:])
+    local_file_path = get_local_file_path(remote_file_path)
     os.utime(
         local_file_path,
         (

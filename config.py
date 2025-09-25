@@ -122,9 +122,7 @@ def config_ok_to_delete():
 def _is_excluded_folder(local_folder_path):
     # forward slash at end of path ensures prefix-free
     local_folder_path_with_slash = add_trailing_slash(local_folder_path)
-    remote_file_path = get_remote_file_path_of_local_file_path(
-        local_folder_path_with_slash
-    )
+    remote_file_path = get_remote_file_path(local_folder_path_with_slash)
     for excluded_folder_path in excluded_folder_paths:
         if local_folder_path_with_slash.startswith(excluded_folder_path):
             print("exc", remote_file_path)
@@ -150,8 +148,12 @@ def skip(local_file_path):
     return False
 
 
-def get_remote_file_path_of_local_file_path(local_file_path):
+def get_remote_file_path(local_file_path):
     return db(local_file_path[len(dropbox_local_path) :])
+
+
+def get_local_file_path(remote_file_path):
+    return path_join(dropbox_local_path, remote_file_path)
 
 
 config = _get_config()

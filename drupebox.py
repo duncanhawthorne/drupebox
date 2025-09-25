@@ -3,7 +3,7 @@
 import os
 import time
 from state_cache import save_last_state, time_from_last_run
-from config import excluded_folder_paths, dropbox_local_path, config_ok_to_delete, skip
+from config import excluded_folder_paths, config_ok_to_delete, skip, get_local_file_path
 from db_utils import (
     last_state,
     remote_delete,
@@ -49,7 +49,7 @@ def action_locally_deleted_files():
 def action_folder(remote_folder_path):
     fyi(remote_folder_path)
 
-    local_folder_path = path_join(dropbox_local_path, remote_folder_path)
+    local_folder_path = get_local_file_path(remote_folder_path)
 
     remote_folder = get_remote_folder(remote_folder_path)
     remote_folder_checked_time = time.time()
@@ -61,7 +61,7 @@ def action_folder(remote_folder_path):
             action_folder(remote_folder_path)
             return
         remote_file_path = remote_item.path_display
-        local_file_path = path_join(dropbox_local_path, remote_file_path)
+        local_file_path = get_local_file_path(remote_file_path)
         if skip(local_file_path):
             continue
 
