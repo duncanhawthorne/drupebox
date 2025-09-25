@@ -10,7 +10,7 @@ from paths import path_exists, add_trailing_slash, path_join, home
 
 
 def _load_last_state():
-    config_filename = drupebox_cache_last_state_path
+    config_filename = _drupebox_cache_last_state_path
     if not path_exists(config_filename):
         config_tmp = ConfigObj()
         config_tmp.filename = config_filename
@@ -24,7 +24,7 @@ def _load_last_state():
 
 
 def save_last_state(cursor):
-    config_filename = drupebox_cache_last_state_path
+    config_filename = _drupebox_cache_last_state_path
     config_tmp = ConfigObj(config_filename)
     config_tmp["cursor_from_last_run"] = cursor
     config_tmp["time_from_last_run"] = time.time()
@@ -40,7 +40,7 @@ else:
 drupebox_cache_file_list_path = path_join(
     _drupebox_cache, APP_NAME + "_last_seen_files"
 )
-drupebox_cache_last_state_path = path_join(_drupebox_cache, APP_NAME + "_last_state")
+_drupebox_cache_last_state_path = path_join(_drupebox_cache, APP_NAME + "_last_state")
 
 last_state = _load_last_state()
 time_from_last_run = last_state["time_from_last_run"]
