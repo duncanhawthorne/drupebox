@@ -14,11 +14,11 @@ from db_utils import (
     download_file,
     create_local_folder,
     upload,
-    local_item_not_found_at_remote,
     create_remote_folder,
     local_delete,
     determine_remotely_deleted_files,
     get_last_state,
+    item_not_found_at_remote,
 )
 
 from local_tree import (
@@ -29,7 +29,7 @@ from local_tree import (
 )
 from log import note, fyi
 from paths import path_exists, db, path_join
-from utils import readable_time
+from utils import readable_time, is_recent_server_connection, is_recent_last_run
 
 
 def action_locally_deleted_files():
@@ -56,7 +56,7 @@ def action_folder(remote_folder_path):
 
     # Go through remote items
     for remote_item in remote_folder:
-        if time.time() > remote_folder_checked_time + 60:
+        if is_recent_server_connection(remote_folder_checked_time):
             note("Last checked in with server over 60 seconds ago, refreshing")
             action_folder(remote_folder_path)
             return
@@ -89,7 +89,7 @@ def action_folder(remote_folder_path):
 
     # Go through local items
     for local_item in os.listdir(local_folder_path):
-        if time.time() > remote_folder_checked_time + 60:
+        if is_recent_server_connection(remote_folder_checked_time):
             note("Last checked in with server over 60 seconds ago, refreshing")
             action_folder(remote_folder_path)
             return
@@ -98,11 +98,10 @@ def action_folder(remote_folder_path):
 
         if skip(local_file_path):
             continue
-        if local_item_not_found_at_remote(remote_folder, remote_file_path):
+        if item_not_found_at_remote(remote_folder, remote_file_path):
             if (
                 time_from_last_run > local_modified_time(local_file_path)
-                and time_from_last_run
-                > time.time() - 60 * 60 * 2  # safety to ensure can trust last cache
+                and is_recent_last_run(time_from_last_run)
                 and remote_file_path in remotely_deleted_files
                 and config_ok_to_delete()
             ):

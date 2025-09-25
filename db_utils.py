@@ -120,7 +120,7 @@ def get_remote_folder(remote_folder_path):
     return db_client.files_list_folder(remote_folder_path).entries
 
 
-def local_item_not_found_at_remote(remote_folder, remote_file_path):
+def item_not_found_at_remote(remote_folder, remote_file_path):
     for remote_item in remote_folder:
         if remote_item.path_display == remote_file_path:
             return False
