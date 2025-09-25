@@ -14,7 +14,7 @@ from config import (
     get_local_file_path,
 )
 from log import note, alert, fyi
-from paths import system_slash, path_join
+from paths import system_slash
 
 """
 Variables in the following formats
@@ -29,7 +29,7 @@ def upload(local_file_path, remote_file_path):
     if os.path.getsize(local_file_path) < int(config["max_file_size"]):
         print("uuu", remote_file_path)
         with open(local_file_path, "rb") as f:
-            remote_file = db_client.files_upload(
+            remote_file = _db_client.files_upload(
                 f.read(),
                 remote_file_path,
                 mute=True,
@@ -42,7 +42,7 @@ def upload(local_file_path, remote_file_path):
 
 def create_remote_folder(remote_file_path):
     print("ccc", remote_file_path)
-    db_client.files_create_folder(remote_file_path)
+    _db_client.files_create_folder(remote_file_path)
 
 
 def create_local_folder(remote_file_path, local_file_path):
@@ -56,7 +56,7 @@ def download_file(remote_file_path, local_file_path):
         send2trash(
             system_slash(local_file_path)
         )  # so no files permanently deleted locally
-    remote_file = db_client.files_download_to_file(local_file_path, remote_file_path)
+    remote_file = _db_client.files_download_to_file(local_file_path, remote_file_path)
     fix_local_time(remote_file, remote_file_path)
 
 
@@ -73,7 +73,7 @@ def remote_delete(local_file_path):
     remote_file_path = get_remote_file_path(local_file_path)
     alert(remote_file_path)
     try:
-        db_client.files_delete(remote_file_path)
+        _db_client.files_delete(remote_file_path)
     except dropbox.exceptions.ApiError as err:
         if (
             hasattr(err.error, "is_path_lookup")
@@ -117,7 +117,7 @@ def fix_local_time(remote_file, remote_file_path):
 
 
 def get_remote_folder(remote_folder_path):
-    return db_client.files_list_folder(remote_folder_path).entries
+    return _db_client.files_list_folder(remote_folder_path).entries
 
 
 def item_not_found_at_remote(remote_folder, remote_file_path):
@@ -132,7 +132,7 @@ def determine_remotely_deleted_files():
     fyi("Scanning for any remotely deleted files since last Drupebox run")
     deleted_files = []
     if cursor != "":
-        deltas = db_client.files_list_folder_continue(cursor).entries
+        deltas = _db_client.files_list_folder_continue(cursor).entries
         for delta in deltas:
             if isinstance(delta, dropbox.files.DeletedMetadata):
                 deleted_files.append(delta.path_display)
@@ -144,9 +144,9 @@ def determine_remotely_deleted_files():
 
 
 def get_last_state():
-    return db_client.files_list_folder_get_latest_cursor("", recursive=True).cursor
+    return _db_client.files_list_folder_get_latest_cursor("", recursive=True).cursor
 
 
-db_client = dropbox.Dropbox(
+_db_client = dropbox.Dropbox(
     app_key=config["app_key"], oauth2_refresh_token=config["refresh_token"]
 )
