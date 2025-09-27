@@ -28,7 +28,7 @@ from local_tree import (
 )
 from log import note, fyi
 from paths import path_exists, db, path_join
-from utils import readable_time, is_recent_server_connection, is_recent_last_run
+from utils import readable_time, is_not_recent_server_connection, is_recent_last_run
 
 
 def action_locally_deleted_files():
@@ -58,7 +58,7 @@ def action_folder(remote_folder_path):
 
     # Go through remote items
     for remote_item in remote_folder:
-        if is_recent_server_connection(remote_folder_checked_time):
+        if is_not_recent_server_connection(remote_folder_checked_time):
             note("Last checked in with server over 60 seconds ago, refreshing")
             action_folder(remote_folder_path)
             return
@@ -91,7 +91,7 @@ def action_folder(remote_folder_path):
 
     # Go through local items
     for local_item in os.listdir(local_folder_path):
-        if is_recent_server_connection(remote_folder_checked_time):
+        if is_not_recent_server_connection(remote_folder_checked_time):
             note("Last checked in with server over 60 seconds ago, refreshing")
             action_folder(remote_folder_path)
             return
@@ -117,6 +117,7 @@ def action_folder(remote_folder_path):
                     note("Found local file that isn't on remote Dropbox, so upload")
                     upload(local_file_path, remote_file_path)
 
+    # Go through sub-folders and repeat
     for sub_folder in os.listdir(local_folder_path):
         local_sub_folder_path = path_join(local_folder_path, sub_folder)
         if os.path.isdir(local_sub_folder_path) and not skip(local_sub_folder_path):

@@ -13,7 +13,7 @@ def readable_time(unix_time):
     )
 
 
-def is_recent_server_connection(t):
+def is_not_recent_server_connection(t):
     return time.time() > t + 60
 
 
