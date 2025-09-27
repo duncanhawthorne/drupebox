@@ -61,36 +61,31 @@ def _make_new_config_file(config_filename):
 
 
 def _sanitize_config(config_tmp):
+    made_changes = False
     # format dropbox local path with forward slashes on all platforms and end with forward slash to ensure prefix-free
-    if config_tmp["dropbox_local_path"] != add_trailing_slash(
-        config_tmp["dropbox_local_path"]
-    ):
-        config_tmp["dropbox_local_path"] = add_trailing_slash(
-            config_tmp["dropbox_local_path"]
-        )
-        config_tmp.write()
+    original_dropbox_path = config_tmp["dropbox_local_path"]
+    sanitized_dropbox_path = add_trailing_slash(original_dropbox_path)
+    if original_dropbox_path != sanitized_dropbox_path:
+        config_tmp["dropbox_local_path"] = sanitized_dropbox_path
+        print("sanitized dropbox path")
+        made_changes = True
 
     # format excluded paths with forward slashes on all platforms and end with forward slash to ensure prefix-free
-    excluded_folder_paths_sanitize = False
-    for excluded_folder_path in config_tmp["excluded_folder_paths"]:
-        if add_trailing_slash(excluded_folder_path) != excluded_folder_path:
-            excluded_folder_paths_sanitize = True
-            break
+    original_excluded_paths = config_tmp.get("excluded_folder_paths", [])
+    sanitized_excluded_paths = [add_trailing_slash(p) for p in original_excluded_paths]
+    if original_excluded_paths != sanitized_excluded_paths:
+        config_tmp["excluded_folder_paths"] = sanitized_excluded_paths
+        print("sanitized excluded paths")
+        made_changes = True
 
-    if excluded_folder_paths_sanitize:
-        excluded_folder_paths_tmp = []
-        excluded_folder_paths_tmp[:] = [
-            add_trailing_slash(excluded_folder_path)
-            for excluded_folder_path in config_tmp["excluded_folder_paths"]
-        ]
-        config_tmp["excluded_folder_paths"] = excluded_folder_paths_tmp
+    if made_changes:
         config_tmp.write()
 
 
 def _get_config_real():
-    if not path_exists(path_join(home, ".config")):
-        os.makedirs(path_join(home, ".config"))
-    config_filename = path_join(home, ".config", APP_NAME)
+    config_dir = path_join(home, ".config")
+    os.makedirs(config_dir, exist_ok=True)
+    config_filename = path_join(config_dir, APP_NAME)
     if not path_exists(config_filename):
         # First time only
         _make_new_config_file(config_filename)
