@@ -9,26 +9,26 @@ from paths import path_exists, path_join, drupebox_cache_folder
 
 
 def _load_last_run_state():
-    config_filename = _drupebox_cache_last_state_path
-    if not path_exists(config_filename):
-        config_tmp = ConfigObj()
-        config_tmp.filename = config_filename
-        config_tmp["cursor_from_last_run"] = ""
-        config_tmp["time_from_last_run"] = 0
-        config_tmp["excluded_folder_paths_from_last_run"] = []
+    cache_filename = _drupebox_cache_last_state_path
+    if not path_exists(cache_filename):
+        cache_tmp = ConfigObj()
+        cache_tmp.filename = cache_filename
+        cache_tmp["cursor_from_last_run"] = ""
+        cache_tmp["time_from_last_run"] = 0
+        cache_tmp["excluded_folder_paths_from_last_run"] = []
     else:
-        config_tmp = ConfigObj(config_filename)
-        config_tmp["time_from_last_run"] = float(config_tmp["time_from_last_run"])
-    return config_tmp
+        cache_tmp = ConfigObj(cache_filename)
+        cache_tmp["time_from_last_run"] = float(cache_tmp["time_from_last_run"])
+    return cache_tmp
 
 
 def store_state(cursor):
-    config_filename = _drupebox_cache_last_state_path
-    config_tmp = ConfigObj(config_filename)
-    config_tmp["cursor_from_last_run"] = cursor
-    config_tmp["time_from_last_run"] = time.time()
-    config_tmp["excluded_folder_paths_from_last_run"] = excluded_folder_paths
-    config_tmp.write()
+    cache_filename = _drupebox_cache_last_state_path
+    cached_tmp = ConfigObj(cache_filename)
+    cached_tmp["cursor_from_last_run"] = cursor
+    cached_tmp["time_from_last_run"] = time.time()
+    cached_tmp["excluded_folder_paths_from_last_run"] = excluded_folder_paths
+    cached_tmp.write()
 
 
 def excluded_folders_changed():
