@@ -96,10 +96,7 @@ def local_modified_time(local_file_path):
 
 def remote_modified_time(remote_item):
     db_naive_time = remote_item.client_modified
-    a = db_naive_time
-    db_utc_time = datetime(
-        a.year, a.month, a.day, a.hour, a.minute, a.second, tzinfo=timezone.utc
-    )
+    db_utc_time = db_naive_time.replace(tzinfo=timezone.utc)
     return db_utc_time.timestamp()
 
 
