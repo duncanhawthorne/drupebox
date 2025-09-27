@@ -112,7 +112,7 @@ _get_config.cache = None
 
 
 def config_ok_to_delete():
-    if _get_config()["really_delete_local_files"] != "True":
+    if config["really_delete_local_files"] != "True":
         note("Drupebox not set to delete local files, so force reupload local file")
         return False
     else:
