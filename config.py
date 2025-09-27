@@ -92,13 +92,10 @@ def _get_config_real():
     return config_tmp
 
 
+@cache
 def _get_config():
-    if _get_config.cache is None:  # First run
-        _get_config.cache = _get_config_real()
-    return _get_config.cache
-
-
-_get_config.cache = None
+    # uses cache decorator, so after first call, just returns cache of last call
+    return _get_config_real()
 
 
 def config_ok_to_delete():
