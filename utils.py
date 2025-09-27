@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import sys
-from datetime import datetime, timezone
 import time
+from datetime import datetime, timezone
 
 
 def readable_time(unix_time):

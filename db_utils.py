@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import os
 from datetime import timezone
 
-import os
 import dropbox
 from send2trash import send2trash
 
-from state_cache import state_last_run
 from config import (
     config,
     config_ok_to_delete,
@@ -16,6 +15,7 @@ from config import (
 )
 from log import note, alert, fyi
 from paths import system_slash
+from state_cache import state_last_run
 
 """
 Variables in the following formats

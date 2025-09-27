@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import time
-from state_cache import store_state, time_last_run, excluded_folders_changed
+
 from config import config_ok_to_delete, skip, get_local_file_path
 from db_utils import (
     remote_delete,
@@ -19,7 +19,6 @@ from db_utils import (
     get_latest_db_state,
     item_not_found_at_remote,
 )
-
 from local_tree import (
     get_live_local_tree,
     store_tree,
@@ -28,6 +27,7 @@ from local_tree import (
 )
 from log import note, fyi
 from paths import path_exists, db, path_join
+from state_cache import store_state, time_last_run, excluded_folders_changed
 from utils import readable_time, is_server_connection_stale, is_recent_last_run
 
 
