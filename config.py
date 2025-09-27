@@ -118,17 +118,24 @@ def _is_excluded_folder(local_folder_path):
 
 
 def skip(local_file_path):
-    local_item = local_file_path.rstrip("/").split("/")[-1]  # rstrip for safety only
+    local_file_name = local_file_path.rstrip("/").split("/")[
+        -1
+    ]  # rstrip for safety only
     for prefix in [".fuse_hidden"]:
-        if local_item.startswith(prefix):
+        if local_file_name.startswith(prefix):
             fyi_ignore(prefix + " files")
             return True
     for suffix in [".pyc", "__pycache__", ".git"]:
-        if local_item.endswith(suffix):
+        if local_file_name.endswith(suffix):
             fyi_ignore(suffix + " files")
             return True
-    if local_item in [".DS_Store", "._.DS_Store", "DG1__DS_DIR_HDR", "DG1__DS_VOL_HDR"]:
-        fyi_ignore(local_item)
+    if local_file_name in [
+        ".DS_Store",
+        "._.DS_Store",
+        "DG1__DS_DIR_HDR",
+        "DG1__DS_VOL_HDR",
+    ]:
+        fyi_ignore(local_file_name)
         return True
     if _is_excluded_folder(local_file_path):
         return True
