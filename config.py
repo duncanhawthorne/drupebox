@@ -38,9 +38,9 @@ def _make_new_config_file(config_filename):
     config_tmp["refresh_token"] = dropbox_authorize(config_tmp["app_key"]).refresh_token
 
     default_path = path_join(home, "Dropbox")
-    user_path_tmp = input(
-        f"Enter dropbox local path (or press enter for {default_path}/) "
-    ).strip()
+    user_path_tmp = unix_slash(
+        input(f"Enter dropbox local path (or press enter for {default_path}/) ").strip()
+    )
     user_path_tmp = user_path_tmp or default_path
     user_path_tmp = add_trailing_slash(user_path_tmp)
     config_tmp["dropbox_local_path"] = user_path_tmp
