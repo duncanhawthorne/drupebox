@@ -31,22 +31,23 @@ APP_KEY = "1skff241na3x0at"
 MAX_FILE_SIZE = 100000000
 
 
-def _make_new_config_file(config_filename):
-    config_tmp = ConfigObj()
-    config_tmp.filename = config_filename
-
-    config_tmp["app_key"] = APP_KEY
-    config_tmp["refresh_token"] = dropbox_authorize(config_tmp["app_key"]).refresh_token
-
+def _determine_dropbox_folder_location():
     default_path = path_join(home, "Dropbox")
     user_path_tmp = unix_slash(
         input(f"Enter dropbox local path (or press enter for {default_path}/) ").strip()
     )
     user_path_tmp = user_path_tmp or default_path
     user_path_tmp = add_trailing_slash(user_path_tmp)
-    config_tmp["dropbox_local_path"] = user_path_tmp
+    os.makedirs(user_path_tmp, exist_ok=True)
+    return user_path_tmp
 
-    os.makedirs(config_tmp["dropbox_local_path"], exist_ok=True)
+
+def _make_new_config_file(config_filename):
+    config_tmp = ConfigObj()
+    config_tmp.filename = config_filename
+    config_tmp["app_key"] = APP_KEY
+    config_tmp["refresh_token"] = dropbox_authorize(config_tmp["app_key"]).refresh_token
+    config_tmp["dropbox_local_path"] = _determine_dropbox_folder_location()
     config_tmp["max_file_size"] = MAX_FILE_SIZE
     config_tmp["excluded_folder_paths"] = [
         "/home/pi/SUPER_SECRET_LOCATION_1/",
