@@ -33,7 +33,7 @@ from utils import readable_time, is_server_connection_stale, is_recent_last_run
 
 def action_locally_deleted_files():
     fyi("Syncing any locally deleted files since last Drupebox run")
-    if excluded_folders_changed:
+    if excluded_folders_changed():
         note(
             "Changed list of excluded folder paths, skipping locally deleted files check"
         )
