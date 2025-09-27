@@ -51,9 +51,13 @@ def db(path):
     return path1.rstrip("/")
 
 
-def get_containing_folder_path(file_path):
+def _get_containing_folder_path(file_path):
     # rstrip for safety
     return path_join(*tuple(file_path.rstrip("/").split("/")[0:-1]))
+
+
+def get_file_name(local_file_path):
+    return local_file_path.rstrip("/").split("/")[-1]  # rstrip for safety only
 
 
 def path_exists(path):

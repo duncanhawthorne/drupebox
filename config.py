@@ -14,6 +14,7 @@ from paths import (
     add_trailing_slash,
     path_exists,
     db,
+    get_file_name,
 )
 
 APP_NAME = "drupebox"
@@ -119,9 +120,7 @@ def _is_excluded_folder(local_folder_path):
 
 
 def skip(local_file_path):
-    local_file_name = local_file_path.rstrip("/").split("/")[
-        -1
-    ]  # rstrip for safety only
+    local_file_name = get_file_name(local_file_path)
     for prefix in [".fuse_hidden"]:
         if local_file_name.startswith(prefix):
             fyi_ignore(prefix + " files")
