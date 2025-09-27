@@ -37,20 +37,15 @@ def _make_new_config_file(config_filename):
     config_tmp["app_key"] = APP_KEY
     config_tmp["refresh_token"] = dropbox_authorize(config_tmp["app_key"]).refresh_token
 
-    config_tmp["dropbox_local_path"] = unix_slash(
-        input(
-            "Enter dropbox local path (or press enter for "
-            + path_join(home, "Dropbox")
-            + "/) "
-        ).strip()
-    )
-    if config_tmp["dropbox_local_path"] == "":
-        config_tmp["dropbox_local_path"] = path_join(home, "Dropbox")
-    config_tmp["dropbox_local_path"] = add_trailing_slash(
-        config_tmp["dropbox_local_path"]
-    )
-    if not path_exists(config_tmp["dropbox_local_path"]):
-        os.makedirs(config_tmp["dropbox_local_path"])
+    default_path = path_join(home, "Dropbox")
+    user_path_tmp = input(
+        f"Enter dropbox local path (or press enter for {default_path}/) "
+    ).strip()
+    user_path_tmp = user_path_tmp or default_path
+    user_path_tmp = add_trailing_slash(user_path_tmp)
+    config_tmp["dropbox_local_path"] = user_path_tmp
+
+    os.makedirs(user_path_tmp, exist_ok=True)
     config_tmp["max_file_size"] = MAX_FILE_SIZE
     config_tmp["excluded_folder_paths"] = [
         "/home/pi/SUPER_SECRET_LOCATION_1/",
