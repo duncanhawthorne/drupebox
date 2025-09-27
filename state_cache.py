@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import sys
 import time
 
 from configobj import ConfigObj
 
 from config import excluded_folder_paths, APP_NAME
-from paths import path_exists, add_trailing_slash, path_join, home
+from paths import path_exists, path_join
+from utils import drupebox_cache_folder
 
 
 def _load_last_run_state():
@@ -39,15 +39,9 @@ def excluded_folders_changed():
     )
 
 
-if sys.platform != "win32":
-    _drupebox_cache = "/dev/shm/"
-else:
-    _drupebox_cache = add_trailing_slash(path_join(home, ".config"))
-
-drupebox_cache_file_list_path = path_join(
-    _drupebox_cache, APP_NAME + "_last_seen_files"
+_drupebox_cache_last_state_path = path_join(
+    drupebox_cache_folder, APP_NAME + "_last_state"
 )
-_drupebox_cache_last_state_path = path_join(_drupebox_cache, APP_NAME + "_last_state")
 
 state_last_run = _load_last_run_state()
 time_last_run = state_last_run["time_from_last_run"]
