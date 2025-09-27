@@ -9,7 +9,7 @@ def dropbox_authorize(config_app_key):
         config_app_key, use_pkce=True, token_access_type="offline"
     )
     authorize_url = flow.start()
-    print(("1. Go to: " + authorize_url))
+    print("1. Go to: " + authorize_url)
     print('2. Click "Allow" (you might have to log in first)')
     print("3. Copy the authorization code.")
     code = input("Enter the authorization code here: ").strip()

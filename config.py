@@ -64,7 +64,7 @@ def _sanitize_config(config_tmp):
     sanitized_dropbox_path = add_trailing_slash(original_dropbox_path)
     if original_dropbox_path != sanitized_dropbox_path:
         config_tmp["dropbox_local_path"] = sanitized_dropbox_path
-        print("sanitized dropbox path")
+        note("sanitized dropbox path")
         made_changes = True
 
     # format excluded paths with forward slashes on all platforms and end with forward slash to ensure prefix-free
@@ -72,7 +72,7 @@ def _sanitize_config(config_tmp):
     sanitized_excluded_paths = [add_trailing_slash(p) for p in original_excluded_paths]
     if original_excluded_paths != sanitized_excluded_paths:
         config_tmp["excluded_folder_paths"] = sanitized_excluded_paths
-        print("sanitized excluded paths")
+        note("sanitized excluded paths")
         made_changes = True
 
     if made_changes:
@@ -113,7 +113,7 @@ def _is_excluded_folder(local_folder_path):
     remote_file_path = get_remote_file_path(local_folder_path_with_slash)
     for excluded_folder_path in excluded_folder_paths:
         if local_folder_path_with_slash.startswith(excluded_folder_path):
-            print("exc", remote_file_path)
+            fyi_ignore(remote_file_path)
             return True
     return False
 

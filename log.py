@@ -3,16 +3,16 @@
 
 
 def note(text):
-    print(">>>", text)
+    print(">>>>>>", text)
 
 
 def alert(text):
-    print("!!!", text)
+    print("!!!!!!", text)
 
 
 def fyi(text):
-    print("   ", text)
+    print("      ", text)
 
 
 def fyi_ignore(text):
-    print("     -> ignore", text)
+    print("        -> ignore", text)

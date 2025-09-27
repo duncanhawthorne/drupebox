@@ -28,7 +28,7 @@ local_folder_path -> posix format, no trailing slash
 
 def upload(local_file_path, remote_file_path):
     if config_file_size_ok(local_file_path):
-        print("uuu", remote_file_path)
+        print("upload", remote_file_path)
         with open(local_file_path, "rb") as f:
             remote_file = _db_client.files_upload(
                 f.read(),
@@ -42,17 +42,17 @@ def upload(local_file_path, remote_file_path):
 
 
 def create_remote_folder(remote_file_path):
-    print("ccc", remote_file_path)
+    print("create", remote_file_path)
     _db_client.files_create_folder(remote_file_path)
 
 
 def create_local_folder(remote_file_path, local_file_path):
-    print("ccc", remote_file_path)
+    print("create", remote_file_path)
     os.makedirs(local_file_path, exist_ok=True)
 
 
 def download_file(remote_file_path, local_file_path):
-    print("ddd", remote_file_path)
+    print("downld", remote_file_path)
     if os.path.exists(local_file_path):
         send2trash(
             system_slash(local_file_path)
