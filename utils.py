@@ -4,13 +4,6 @@ import sys
 from datetime import datetime, timezone
 import time
 
-from paths import add_trailing_slash, path_join, home
-
-if sys.platform != "win32":
-    drupebox_cache_folder = "/dev/shm/"
-else:
-    drupebox_cache_folder = add_trailing_slash(path_join(home, ".config"))
-
 
 def readable_time(unix_time):
     return (

@@ -5,8 +5,7 @@ import time
 from configobj import ConfigObj
 
 from config import excluded_folder_paths, APP_NAME
-from paths import path_exists, path_join
-from utils import drupebox_cache_folder
+from paths import path_exists, path_join, drupebox_cache_folder
 
 
 def _load_last_run_state():

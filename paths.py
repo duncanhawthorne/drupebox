@@ -58,3 +58,9 @@ def get_containing_folder_path(file_path):
 
 def path_exists(path):
     return os.path.exists(path)
+
+
+if sys.platform != "win32":
+    drupebox_cache_folder = "/dev/shm/"
+else:
+    drupebox_cache_folder = add_trailing_slash(path_join(home, ".config"))

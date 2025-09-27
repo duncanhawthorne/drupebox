@@ -3,8 +3,7 @@
 import os
 
 from config import excluded_folder_paths, dropbox_local_path, APP_NAME
-from paths import unix_slash, add_trailing_slash, path_join
-from utils import drupebox_cache_folder
+from paths import unix_slash, add_trailing_slash, path_join, drupebox_cache_folder
 
 
 def get_live_local_tree():
