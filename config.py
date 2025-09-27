@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+from functools import cache
 from configobj import ConfigObj
 
 from auth import dropbox_authorize
