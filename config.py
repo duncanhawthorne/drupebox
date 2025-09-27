@@ -142,6 +142,10 @@ def skip(local_file_path):
     return False
 
 
+def config_file_size_ok(local_file_path):
+    return os.path.getsize(local_file_path) < int(config["max_file_size"])
+
+
 def get_remote_file_path(local_file_path):
     return db(local_file_path[len(dropbox_local_path) :])
 

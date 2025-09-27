@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from datetime import datetime, timezone
+from datetime import timezone
 
 import os
 import dropbox
@@ -12,6 +12,7 @@ from config import (
     config_ok_to_delete,
     get_remote_file_path,
     get_local_file_path,
+    config_file_size_ok,
 )
 from log import note, alert, fyi
 from paths import system_slash
@@ -26,7 +27,7 @@ local_folder_path -> posix format, no trailing slash
 
 
 def upload(local_file_path, remote_file_path):
-    if os.path.getsize(local_file_path) < int(config["max_file_size"]):
+    if config_file_size_ok(local_file_path):
         print("uuu", remote_file_path)
         with open(local_file_path, "rb") as f:
             remote_file = _db_client.files_upload(
