@@ -9,7 +9,7 @@ from config import excluded_folder_paths, APP_NAME
 from paths import path_exists, add_trailing_slash, path_join, home
 
 
-def _load_last_state():
+def _load_last_run_state():
     config_filename = _drupebox_cache_last_state_path
     if not path_exists(config_filename):
         config_tmp = ConfigObj()
@@ -23,7 +23,7 @@ def _load_last_state():
     return config_tmp
 
 
-def save_last_state(cursor):
+def store_state(cursor):
     config_filename = _drupebox_cache_last_state_path
     config_tmp = ConfigObj(config_filename)
     config_tmp["cursor_from_last_run"] = cursor
@@ -42,5 +42,5 @@ drupebox_cache_file_list_path = path_join(
 )
 _drupebox_cache_last_state_path = path_join(_drupebox_cache, APP_NAME + "_last_state")
 
-last_state = _load_last_state()
-time_from_last_run = last_state["time_from_last_run"]
+state_last_run = _load_last_run_state()
+time_last_run = state_last_run["time_from_last_run"]

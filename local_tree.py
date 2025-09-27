@@ -7,8 +7,8 @@ from config import excluded_folder_paths, dropbox_local_path
 from paths import unix_slash, add_trailing_slash, path_join
 
 
-def get_live_tree():
-    # get full list of files in the Drupebox folder
+def get_live_local_tree():
+    # get full list of local files in the Drupebox folder
     tree = []
     for root, dirs, files in os.walk(
         dropbox_local_path, topdown=True, followlinks=True

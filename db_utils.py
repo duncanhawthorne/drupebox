@@ -6,7 +6,7 @@ import os
 import dropbox
 from send2trash import send2trash
 
-from state_cache import last_state
+from state_cache import state_last_run
 from config import (
     config,
     config_ok_to_delete,
@@ -128,11 +128,11 @@ def item_not_found_at_remote(remote_folder, remote_file_path):
 
 
 def determine_remotely_deleted_files():
-    cursor = last_state["cursor_from_last_run"]
+    cursor_last_run = state_last_run["cursor_from_last_run"]
     fyi("Scanning for any remotely deleted files since last Drupebox run")
     deleted_files = []
-    if cursor != "":
-        deltas = _db_client.files_list_folder_continue(cursor).entries
+    if cursor_last_run != "":
+        deltas = _db_client.files_list_folder_continue(cursor_last_run).entries
         for delta in deltas:
             if isinstance(delta, dropbox.files.DeletedMetadata):
                 deleted_files.append(delta.path_display)
@@ -143,7 +143,7 @@ def determine_remotely_deleted_files():
     return deleted_files
 
 
-def get_last_state():
+def get_latest_db_state():
     return _db_client.files_list_folder_get_latest_cursor("", recursive=True).cursor
 
 

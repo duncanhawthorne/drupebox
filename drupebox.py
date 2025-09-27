@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 import os
 import time
-from state_cache import save_last_state, time_from_last_run
+from state_cache import store_state, time_last_run, state_last_run
 from config import excluded_folder_paths, config_ok_to_delete, skip, get_local_file_path
 from db_utils import (
-    last_state,
     remote_delete,
     get_remote_folder,
     is_file,
@@ -17,12 +16,12 @@ from db_utils import (
     create_remote_folder,
     local_delete,
     determine_remotely_deleted_files,
-    get_last_state,
+    get_latest_db_state,
     item_not_found_at_remote,
 )
 
 from local_tree import (
-    get_live_tree,
+    get_live_local_tree,
     store_tree,
     determine_locally_deleted_files,
     file_tree_from_last_run,
@@ -34,10 +33,13 @@ from utils import readable_time, is_recent_server_connection, is_recent_last_run
 
 def action_locally_deleted_files():
     fyi("Syncing any locally deleted files since last Drupebox run")
-    if not last_state["excluded_folder_paths_from_last_run"] == excluded_folder_paths:
+    if (
+        not state_last_run["excluded_folder_paths_from_last_run"]
+        == excluded_folder_paths
+    ):
         note("Changed list of excluded folder paths, skipping check")
         return
-    file_tree_now = get_live_tree()
+    file_tree_now = get_live_local_tree()
     locally_deleted_files = determine_locally_deleted_files(
         file_tree_now, file_tree_from_last_run
     )
@@ -100,8 +102,8 @@ def action_folder(remote_folder_path):
             continue
         if item_not_found_at_remote(remote_folder, remote_file_path):
             if (
-                time_from_last_run > local_modified_time(local_file_path)
-                and is_recent_last_run(time_from_last_run)
+                time_last_run > local_modified_time(local_file_path)
+                and is_recent_last_run(time_last_run)
                 and remote_file_path in remotely_deleted_files
                 and config_ok_to_delete()
             ):
@@ -128,6 +130,6 @@ action_locally_deleted_files()
 fyi("Syncing all other local and remote files changes")
 action_folder("")
 
-save_last_state(get_last_state())
-store_tree(get_live_tree())
+store_state(get_latest_db_state())
+store_tree(get_live_local_tree())
 print("Drupebox sync complete at", readable_time(time.time()))
