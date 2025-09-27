@@ -32,6 +32,13 @@ def store_state(cursor):
     config_tmp.write()
 
 
+def excluded_folders_changed():
+    return (
+        not state_last_run["excluded_folder_paths_from_last_run"]
+        == excluded_folder_paths
+    )
+
+
 if sys.platform != "win32":
     _drupebox_cache = "/dev/shm/"
 else:

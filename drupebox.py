@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 import os
 import time
-from state_cache import store_state, time_last_run, state_last_run
-from config import excluded_folder_paths, config_ok_to_delete, skip, get_local_file_path
+from state_cache import store_state, time_last_run, excluded_folders_changed
+from config import config_ok_to_delete, skip, get_local_file_path
 from db_utils import (
     remote_delete,
     get_remote_folder,
@@ -33,11 +33,10 @@ from utils import readable_time, is_server_connection_stale, is_recent_last_run
 
 def action_locally_deleted_files():
     fyi("Syncing any locally deleted files since last Drupebox run")
-    if (
-        not state_last_run["excluded_folder_paths_from_last_run"]
-        == excluded_folder_paths
-    ):
-        note("Changed list of excluded folder paths, skipping check")
+    if excluded_folders_changed:
+        note(
+            "Changed list of excluded folder paths, skipping locally deleted files check"
+        )
         return
     file_tree_now = get_live_local_tree()
     locally_deleted_files = determine_locally_deleted_files(
