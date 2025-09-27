@@ -27,7 +27,7 @@ APP_NAME = "drupebox"
 # On the Settings tab, copy the App key
 # Update the APP_KEY variable below to your App key
 APP_KEY = "1skff241na3x0at"
-MAX_FILE_SIZE = 10000000
+MAX_FILE_SIZE = 100000000
 
 
 def _make_new_config_file(config_filename):
