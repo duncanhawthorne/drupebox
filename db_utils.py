@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+import time
 from datetime import timezone
 
 import dropbox
@@ -14,8 +15,9 @@ from config import (
     config_file_size_ok,
 )
 from log import note, alert, fyi
-from paths import system_slash
+from paths import system_slash, get_containing_folder_path, db
 from state_cache import state_last_run
+from utils import is_server_connection_stale
 
 """
 Variables in the following formats
@@ -116,7 +118,31 @@ def fix_local_time(remote_file, remote_file_path):
 
 
 def get_remote_folder(remote_folder_path):
-    return _db_client.files_list_folder(remote_folder_path).entries
+    return [
+        element
+        for element in _get_all_remote_files()
+        if db(get_containing_folder_path(element.path_display)) == remote_folder_path
+    ]
+
+
+def _get_all_remote_files_real():
+    return _db_client.files_list_folder("", recursive=True).entries
+
+
+_CACHE_TIME_KEY = "checked_time"
+_CACHE_DATA_KEY = "data"
+
+
+_all_remote_files_cache = {_CACHE_TIME_KEY: 0.0, _CACHE_DATA_KEY: []}
+
+
+def _get_all_remote_files():
+    if is_server_connection_stale(_all_remote_files_cache[_CACHE_TIME_KEY]):
+        if _all_remote_files_cache[_CACHE_TIME_KEY] != 0:
+            note("Last checked in with server over 60 seconds ago, refreshing")
+        _all_remote_files_cache[_CACHE_DATA_KEY] = _get_all_remote_files_real()
+        _all_remote_files_cache[_CACHE_TIME_KEY] = time.time()
+    return _all_remote_files_cache[_CACHE_DATA_KEY]
 
 
 def item_not_found_at_remote(remote_folder, remote_file_path):

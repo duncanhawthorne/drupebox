@@ -28,7 +28,7 @@ from local_tree import (
 from log import note, fyi
 from paths import path_exists, db, path_join
 from state_cache import store_state, time_last_run, excluded_folders_changed
-from utils import readable_time, is_server_connection_stale, is_recent_last_run
+from utils import readable_time, is_recent_last_run
 
 
 def action_locally_deleted_files():
@@ -53,14 +53,9 @@ def action_folder(remote_folder_path):
     local_folder_path = get_local_file_path(remote_folder_path)
 
     remote_folder = get_remote_folder(remote_folder_path)
-    remote_folder_checked_time = time.time()
 
     # Go through remote items
     for remote_item in remote_folder:
-        if is_server_connection_stale(remote_folder_checked_time):
-            note("Last checked in with server over 60 seconds ago, refreshing")
-            action_folder(remote_folder_path)
-            return
         remote_file_path = remote_item.path_display
         local_file_path = get_local_file_path(remote_file_path)
         if skip(local_file_path):
@@ -90,10 +85,6 @@ def action_folder(remote_folder_path):
 
     # Go through local items
     for local_item in os.listdir(local_folder_path):
-        if is_server_connection_stale(remote_folder_checked_time):
-            note("Last checked in with server over 60 seconds ago, refreshing")
-            action_folder(remote_folder_path)
-            return
         remote_file_path = db(path_join(remote_folder_path, local_item))
         local_file_path = path_join(local_folder_path, local_item)
 
