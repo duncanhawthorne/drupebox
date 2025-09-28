@@ -3,6 +3,9 @@
 import os
 import time
 from datetime import timezone
+from log import note, alert, fyi
+
+fyi("Initiating libraries")
 
 import dropbox
 from send2trash import send2trash
@@ -14,7 +17,6 @@ from config import (
     get_local_file_path,
     config_file_size_ok,
 )
-from log import note, alert, fyi
 from paths import system_slash, get_containing_folder_path, db
 from state_cache import state_last_run
 from utils import is_server_connection_stale
@@ -140,6 +142,8 @@ def _get_all_remote_files():
     if is_server_connection_stale(_all_remote_files_cache[_CACHE_TIME_KEY]):
         if _all_remote_files_cache[_CACHE_TIME_KEY] != 0:
             note("Last checked in with server over 60 seconds ago, refreshing")
+        else:
+            fyi("Scanning for files on Dropbox")
         _all_remote_files_cache[_CACHE_DATA_KEY] = _get_all_remote_files_real()
         _all_remote_files_cache[_CACHE_TIME_KEY] = time.time()
     return _all_remote_files_cache[_CACHE_DATA_KEY]
@@ -175,3 +179,4 @@ def get_latest_db_state():
 _db_client = dropbox.Dropbox(
     app_key=config["app_key"], oauth2_refresh_token=config["refresh_token"]
 )
+_get_all_remote_files()
