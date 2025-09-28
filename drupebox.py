@@ -3,6 +3,11 @@
 import os
 import time
 
+from utils import readable_time, is_recent_last_run
+
+# print early to give user feedback as imports can take some time
+print("Drupebox sync started at", readable_time(time.time()))
+
 from config import config_ok_to_delete, skip, get_local_file_path
 from db_utils import (
     remote_delete,
@@ -28,7 +33,6 @@ from local_tree import (
 from log import note, fyi
 from paths import path_exists, db, path_join
 from state_cache import store_state, time_last_run, excluded_folders_changed
-from utils import readable_time, is_recent_last_run
 
 
 def action_locally_deleted_files():
@@ -114,7 +118,6 @@ def action_folder(remote_folder_path):
             action_folder(db(path_join(remote_folder_path, sub_folder)))
 
 
-print("Drupebox sync started at", readable_time(time.time()))
 remotely_deleted_files = determine_remotely_deleted_files()
 action_locally_deleted_files()
 
