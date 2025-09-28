@@ -4,9 +4,11 @@ import os
 import time
 
 from utils import readable_time, is_recent_last_run
+from log import note, fyi
 
 # print early to give user feedback as imports can take some time
 print("Drupebox sync started at", readable_time(time.time()))
+fyi("Initiating libraries")
 
 from config import config_ok_to_delete, skip, get_local_file_path
 from db_utils import (
@@ -30,7 +32,6 @@ from local_tree import (
     determine_locally_deleted_files,
     file_tree_from_last_run,
 )
-from log import note, fyi
 from paths import path_exists, db, path_join
 from state_cache import store_state, time_last_run, excluded_folders_changed
 

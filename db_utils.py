@@ -3,9 +3,6 @@
 import os
 import time
 from datetime import timezone
-from log import note, alert, fyi
-
-fyi("Initiating libraries")
 
 import dropbox
 from send2trash import send2trash
@@ -17,6 +14,7 @@ from config import (
     get_local_file_path,
     config_file_size_ok,
 )
+from log import note, alert, fyi
 from paths import system_slash, get_containing_folder_path, db
 from state_cache import state_last_run
 from utils import is_server_connection_stale
