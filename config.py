@@ -105,6 +105,7 @@ def config_ok_to_delete():
     ok_to_delete = config.as_bool("really_delete_local_files")
     if not ok_to_delete:
         note("Drupebox not set to delete local files, so force reupload local file")
+        # edit the drupebox config file really_delete_local_files if you want local files to be deleted
     return ok_to_delete
 
 

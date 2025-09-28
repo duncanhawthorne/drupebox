@@ -54,20 +54,21 @@ def create_local_folder(remote_file_path, local_file_path):
 def download_file(remote_file_path, local_file_path):
     print("downld", remote_file_path)
     if os.path.exists(local_file_path):
-        send2trash(
-            system_slash(local_file_path)
-        )  # so no files permanently deleted locally
+        _delete_real(local_file_path)
     remote_file = _db_client.files_download_to_file(local_file_path, remote_file_path)
     fix_local_time(remote_file, remote_file_path)
 
 
 def local_delete(local_file_path):
     remote_file_path = get_remote_file_path(local_file_path)
-    if (
-        config_ok_to_delete()
-    ):  # safety check that should be impossible to get to as this is checked before calling local_delete
-        alert(remote_file_path)
-        send2trash(system_slash(local_file_path))
+    assert config_ok_to_delete()  # as already checked this before calling local_delete
+    alert(remote_file_path)
+    _delete_real(local_file_path)
+
+
+def _delete_real(local_file_path):
+    # deleting local files uses send2trash so no files are permanently deleted locally
+    send2trash(system_slash(local_file_path))
 
 
 def remote_delete(local_file_path):
