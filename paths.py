@@ -65,6 +65,6 @@ def path_exists(path):
 
 
 if sys.platform != "win32":
-    drupebox_cache_folder = "/dev/shm"
+    cache_folder = "/dev/shm"
 else:
-    drupebox_cache_folder = path_join(home, ".config")
+    cache_folder = path_join(home, ".config")

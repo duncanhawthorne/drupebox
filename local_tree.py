@@ -3,7 +3,7 @@
 import os
 
 from config import excluded_folder_paths, dropbox_local_path, APP_NAME
-from paths import unix_slash, add_trailing_slash, path_join, drupebox_cache_folder
+from paths import unix_slash, add_trailing_slash, path_join, cache_folder
 
 
 def get_live_local_tree():
@@ -28,14 +28,14 @@ def get_live_local_tree():
 
 
 def store_tree(tree):
-    with open(_drupebox_cache_file_list_path, "w", encoding="utf-8") as f:
+    with open(_tree_cache_file, "w", encoding="utf-8") as f:
         f.write("\n".join(tree))
 
 
 def _load_tree():
-    if not os.path.exists(_drupebox_cache_file_list_path):
+    if not os.path.exists(_tree_cache_file):
         return []
-    with open(_drupebox_cache_file_list_path, "r", encoding="utf-8") as f:
+    with open(_tree_cache_file, "r", encoding="utf-8") as f:
         content = f.read()
         if not content:
             return []
@@ -44,7 +44,7 @@ def _load_tree():
 
 def determine_locally_deleted_files(tree_now, tree_last):
     deleted = []
-    if tree_last == []:
+    if not tree_last:  # i.e. tree_last == []
         return []
     for element in tree_last:
         if not element in tree_now:
@@ -52,8 +52,6 @@ def determine_locally_deleted_files(tree_now, tree_last):
     return deleted
 
 
-_drupebox_cache_file_list_path = path_join(
-    drupebox_cache_folder, APP_NAME + "_last_seen_files"
-)
+_tree_cache_file = path_join(cache_folder, APP_NAME + "_last_seen_files")
 
 file_tree_from_last_run = _load_tree()
