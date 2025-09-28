@@ -22,22 +22,20 @@ def get_live_local_tree():
             tree.append(path_join(root, name))
         for name in dirs:
             tree.append(path_join(root, name))
-    tree.sort(
-        key=lambda s: -len(s)
-    )  # sort longest to smallest so that later files get deleted before the folders that they are in
+    # Sort longest to smallest so that files get processed before their parent folders.
+    tree.sort(key=len, reverse=True)
     return tree
 
 
 def store_tree(tree):
-    tree = "\n".join(tree)
-    with open(_drupebox_cache_file_list_path, "wb") as f:
-        f.write(bytes(tree.encode()))
+    with open(_drupebox_cache_file_list_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(tree))
 
 
 def _load_tree():
     if not os.path.exists(_drupebox_cache_file_list_path):
         return []
-    with open(_drupebox_cache_file_list_path, "r") as f:
+    with open(_drupebox_cache_file_list_path, "r", encoding="utf-8") as f:
         content = f.read()
         if not content:
             return []
