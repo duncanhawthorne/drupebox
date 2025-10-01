@@ -6,7 +6,11 @@ import sys
 home = os.path.expanduser("~")
 
 
-def path_join(*paths):
+def exists(path):
+    return os.path.exists(path)
+
+
+def join(*paths):
     paths_list = list(paths)
     # enable joining /X with /Y to form /X/Y, given that os.path.join would just produce /Y
     for i in range(len(paths_list)):
@@ -53,18 +57,14 @@ def db(path):
 
 def get_containing_folder_path(file_path):
     # rstrip for safety
-    return path_join(*tuple(file_path.rstrip("/").split("/")[0:-1]))
+    return join(*tuple(file_path.rstrip("/").split("/")[0:-1]))
 
 
 def get_file_name(local_file_path):
     return local_file_path.rstrip("/").split("/")[-1]  # rstrip for safety only
 
 
-def path_exists(path):
-    return os.path.exists(path)
-
-
 if sys.platform != "win32":
     cache_folder = "/dev/shm"
 else:
-    cache_folder = path_join(home, ".config")
+    cache_folder = join(home, ".config")

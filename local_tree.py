@@ -3,7 +3,8 @@
 import os
 
 from config import excluded_folder_paths, dropbox_local_path, APP_NAME
-from paths import unix_slash, add_trailing_slash, path_join, cache_folder
+import paths
+from paths import unix_slash, add_trailing_slash, cache_folder
 
 
 def _get_live_local_tree():
@@ -16,12 +17,12 @@ def _get_live_local_tree():
         dirs[:] = [
             d
             for d in dirs
-            if add_trailing_slash(path_join(root, d)) not in excluded_folder_paths
+            if add_trailing_slash(paths.join(root, d)) not in excluded_folder_paths
         ]  # test with slash at end to match excluded_folder_paths and to ensure prefix-free matching
         for name in files:
-            tree.append(path_join(root, name))
+            tree.append(paths.join(root, name))
         for name in dirs:
-            tree.append(path_join(root, name))
+            tree.append(paths.join(root, name))
     # Sort longest to smallest so that files get processed before their parent folders.
     tree.sort(key=len, reverse=True)
     return tree
@@ -58,5 +59,5 @@ def store_current_tree():
     _store_tree(_get_live_local_tree())
 
 
-_tree_cache_file = path_join(cache_folder, APP_NAME + "_last_seen_files")
+_tree_cache_file = paths.join(cache_folder, APP_NAME + "_last_seen_files")
 _file_tree_from_last_run = _load_tree()

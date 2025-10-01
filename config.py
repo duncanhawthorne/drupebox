@@ -7,12 +7,11 @@ from configobj import ConfigObj
 
 from auth import dropbox_authorize
 from log import note, fyi_ignore
+import paths
 from paths import (
     unix_slash,
-    path_join,
     home,
     add_trailing_slash,
-    path_exists,
     db,
     get_file_name,
 )
@@ -33,7 +32,7 @@ _MAX_FILE_SIZE = 100000000
 
 
 def _determine_dropbox_folder_location():
-    default_path = path_join(home, "Dropbox")
+    default_path = paths.join(home, "Dropbox")
     user_path_tmp = unix_slash(
         input(f"Enter dropbox local path (or press enter for {default_path}/) ").strip()
     )
@@ -81,10 +80,10 @@ def _sanitize_config(config_tmp):
 
 
 def _get_config_real():
-    config_dir = path_join(home, ".config")
+    config_dir = paths.join(home, ".config")
     os.makedirs(config_dir, exist_ok=True)
-    config_filename = path_join(config_dir, APP_NAME)
-    if not path_exists(config_filename):
+    config_filename = paths.join(config_dir, APP_NAME)
+    if not paths.exists(config_filename):
         # First time only
         _make_new_config_file(config_filename)
 
@@ -152,7 +151,7 @@ def get_remote_file_path(local_file_path):
 
 
 def get_local_file_path(remote_file_path):
-    return path_join(dropbox_local_path, remote_file_path)
+    return paths.join(dropbox_local_path, remote_file_path)
 
 
 _config = _get_config()

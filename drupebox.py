@@ -30,7 +30,8 @@ from local_tree import (
     determine_locally_deleted_files,
     store_current_tree,
 )
-from paths import path_exists, db, path_join
+import paths
+from paths import db
 from state_cache import store_state, time_last_run, excluded_folders_changed
 
 
@@ -62,11 +63,11 @@ def action_folder(remote_folder_path):
             continue
 
         if (
-            not path_exists(local_file_path)
+            not paths.exists(local_file_path)
             or is_file(remote_item)
             and remote_modified_time(remote_item) > local_modified_time(local_file_path)
         ):
-            if path_exists(local_file_path):
+            if paths.exists(local_file_path):
                 note("Found updated file on remote Dropbox, so download")
             else:
                 note("Found new file on remote Dropbox, so download")
@@ -85,8 +86,8 @@ def action_folder(remote_folder_path):
 
     # Go through local items
     for local_item in os.listdir(local_folder_path):
-        remote_file_path = db(path_join(remote_folder_path, local_item))
-        local_file_path = path_join(local_folder_path, local_item)
+        remote_file_path = db(paths.join(remote_folder_path, local_item))
+        local_file_path = paths.join(local_folder_path, local_item)
 
         if skip(local_file_path):
             continue
@@ -109,9 +110,9 @@ def action_folder(remote_folder_path):
 
     # Go through sub-folders and repeat
     for sub_folder in os.listdir(local_folder_path):
-        local_sub_folder_path = path_join(local_folder_path, sub_folder)
+        local_sub_folder_path = paths.join(local_folder_path, sub_folder)
         if os.path.isdir(local_sub_folder_path) and not skip(local_sub_folder_path):
-            action_folder(db(path_join(remote_folder_path, sub_folder)))
+            action_folder(db(paths.join(remote_folder_path, sub_folder)))
 
 
 remotely_deleted_files = determine_remotely_deleted_files()
