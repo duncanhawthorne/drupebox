@@ -13,7 +13,8 @@ from config import (
     get_local_file_path,
 )
 from log import note, alert, fyi
-from paths import system_slash, get_containing_folder_path, db
+import paths
+from paths import db
 import state_cache
 from utils import is_server_connection_stale
 
@@ -70,7 +71,7 @@ def local_delete(local_file_path):
 
 def _delete_real(local_file_path):
     # deleting local files uses send2trash so no files are permanently deleted locally
-    send2trash(system_slash(local_file_path))
+    send2trash(paths.system_slash(local_file_path))
 
 
 def remote_delete(local_file_path):
@@ -121,7 +122,8 @@ def get_remote_folder(remote_folder_path):
     return [
         element
         for element in _get_all_remote_files()
-        if db(get_containing_folder_path(element.path_display)) == remote_folder_path
+        if db(paths.get_containing_folder_path(element.path_display))
+        == remote_folder_path
     ]
 
 

@@ -8,13 +8,6 @@ from configobj import ConfigObj
 import auth
 from log import note, fyi_ignore
 import paths
-from paths import (
-    unix_slash,
-    home,
-    add_trailing_slash,
-    db,
-    get_file_name,
-)
 
 APP_NAME = "drupebox"
 # To create new app key:
@@ -32,12 +25,12 @@ _MAX_FILE_SIZE = 100000000
 
 
 def _determine_dropbox_folder_location():
-    default_path = paths.join(home, "Dropbox")
-    user_path_tmp = unix_slash(
+    default_path = paths.join(paths.home, "Dropbox")
+    user_path_tmp = paths.unix_slash(
         input(f"Enter dropbox local path (or press enter for {default_path}/) ").strip()
     )
     user_path_tmp = user_path_tmp or default_path
-    user_path_tmp = add_trailing_slash(user_path_tmp)
+    user_path_tmp = paths.add_trailing_slash(user_path_tmp)
     os.makedirs(user_path_tmp, exist_ok=True)
     return user_path_tmp
 
@@ -61,7 +54,7 @@ def _sanitize_config(config_tmp):
     made_changes = False
     # format dropbox local path with forward slashes on all platforms and end with forward slash to ensure prefix-free
     original_dropbox_path = config_tmp["dropbox_local_path"]
-    sanitized_dropbox_path = add_trailing_slash(original_dropbox_path)
+    sanitized_dropbox_path = paths.add_trailing_slash(original_dropbox_path)
     if original_dropbox_path != sanitized_dropbox_path:
         config_tmp["dropbox_local_path"] = sanitized_dropbox_path
         note("sanitized dropbox path")
@@ -69,7 +62,9 @@ def _sanitize_config(config_tmp):
 
     # format excluded paths with forward slashes on all platforms and end with forward slash to ensure prefix-free
     original_excluded_paths = config_tmp.get("excluded_folder_paths", [])
-    sanitized_excluded_paths = [add_trailing_slash(p) for p in original_excluded_paths]
+    sanitized_excluded_paths = [
+        paths.add_trailing_slash(p) for p in original_excluded_paths
+    ]
     if original_excluded_paths != sanitized_excluded_paths:
         config_tmp["excluded_folder_paths"] = sanitized_excluded_paths
         note("sanitized excluded paths")
@@ -80,7 +75,7 @@ def _sanitize_config(config_tmp):
 
 
 def _get_config_real():
-    config_dir = paths.join(home, ".config")
+    config_dir = paths.join(paths.home, ".config")
     os.makedirs(config_dir, exist_ok=True)
     config_filename = paths.join(config_dir, APP_NAME)
     if not paths.exists(config_filename):
@@ -110,7 +105,7 @@ def ok_to_delete_files():
 
 def _is_excluded_folder(local_folder_path):
     # forward slash at end of path ensures prefix-free
-    local_folder_path_with_slash = add_trailing_slash(local_folder_path)
+    local_folder_path_with_slash = paths.add_trailing_slash(local_folder_path)
     remote_file_path = get_remote_file_path(local_folder_path_with_slash)
     for excluded_folder_path in excluded_folder_paths:
         if local_folder_path_with_slash.startswith(excluded_folder_path):
@@ -120,7 +115,7 @@ def _is_excluded_folder(local_folder_path):
 
 
 def skip(local_file_path):
-    local_file_name = get_file_name(local_file_path)
+    local_file_name = paths.get_file_name(local_file_path)
     for prefix in [".fuse_hidden"]:
         if local_file_name.startswith(prefix):
             fyi_ignore(prefix + " files")
@@ -147,7 +142,7 @@ def file_size_ok(local_file_path):
 
 
 def get_remote_file_path(local_file_path):
-    return db(local_file_path[len(dropbox_local_path) :])
+    return paths.db(local_file_path[len(dropbox_local_path) :])
 
 
 def get_local_file_path(remote_file_path):
