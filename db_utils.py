@@ -7,16 +7,14 @@ from datetime import timezone
 import dropbox
 from send2trash import send2trash
 
+import config
 from config import (
-    config,
-    config_ok_to_delete,
     get_remote_file_path,
     get_local_file_path,
-    config_file_size_ok,
 )
 from log import note, alert, fyi
 from paths import system_slash, get_containing_folder_path, db
-from state_cache import state_last_run
+from state_cache import cursor_from_last_run
 from utils import is_server_connection_stale
 
 """
@@ -29,7 +27,7 @@ local_folder_path -> posix format, no trailing slash
 
 
 def upload(local_file_path, remote_file_path):
-    if config_file_size_ok(local_file_path):
+    if config.file_size_ok(local_file_path):
         print("upload", remote_file_path)
         with open(local_file_path, "rb") as f:
             remote_file = _db_client.files_upload(
@@ -63,7 +61,9 @@ def download_file(remote_file_path, local_file_path):
 
 def local_delete(local_file_path):
     remote_file_path = get_remote_file_path(local_file_path)
-    assert config_ok_to_delete()  # as already checked this before calling local_delete
+    assert (
+        config.ok_to_delete_files()
+    )  # as already checked this before calling local_delete
     alert(remote_file_path)
     _delete_real(local_file_path)
 
@@ -155,7 +155,7 @@ def item_not_found_at_remote(remote_folder, remote_file_path):
 
 
 def determine_remotely_deleted_files():
-    cursor_last_run = state_last_run["cursor_from_last_run"]
+    cursor_last_run = cursor_from_last_run
     fyi("Scanning for any remotely deleted files since last Drupebox run")
     deleted_files = []
     if cursor_last_run != "":
@@ -175,6 +175,6 @@ def get_latest_db_state():
 
 
 _db_client = dropbox.Dropbox(
-    app_key=config["app_key"], oauth2_refresh_token=config["refresh_token"]
+    app_key=config.app_key, oauth2_refresh_token=config.refresh_token
 )
 _get_all_remote_files()

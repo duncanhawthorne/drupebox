@@ -28,8 +28,8 @@ APP_NAME = "drupebox"
 # Click "Submit"
 # On the Settings tab, copy the App key
 # Update the APP_KEY variable below to your App key
-APP_KEY = "1skff241na3x0at"
-MAX_FILE_SIZE = 100000000
+_APP_KEY = "1skff241na3x0at"
+_MAX_FILE_SIZE = 100000000
 
 
 def _determine_dropbox_folder_location():
@@ -46,10 +46,10 @@ def _determine_dropbox_folder_location():
 def _make_new_config_file(config_filename):
     config_tmp = ConfigObj()
     config_tmp.filename = config_filename
-    config_tmp["app_key"] = APP_KEY
+    config_tmp["app_key"] = _APP_KEY
     config_tmp["refresh_token"] = dropbox_authorize(config_tmp["app_key"]).refresh_token
     config_tmp["dropbox_local_path"] = _determine_dropbox_folder_location()
-    config_tmp["max_file_size"] = MAX_FILE_SIZE
+    config_tmp["max_file_size"] = _MAX_FILE_SIZE
     config_tmp["excluded_folder_paths"] = [
         "/home/pi/SUPER_SECRET_LOCATION_1/",
         "/home/pi/SUPER SECRET LOCATION 2/",
@@ -101,8 +101,8 @@ def _get_config():
     return _get_config_real()
 
 
-def config_ok_to_delete():
-    ok_to_delete = config.as_bool("really_delete_local_files")
+def ok_to_delete_files():
+    ok_to_delete = _config.as_bool("really_delete_local_files")
     if not ok_to_delete:
         note("Drupebox not set to delete local files, so force reupload local file")
         # edit the drupebox config file really_delete_local_files if you want local files to be deleted
@@ -143,8 +143,8 @@ def skip(local_file_path):
     return False
 
 
-def config_file_size_ok(local_file_path):
-    return os.path.getsize(local_file_path) < int(config["max_file_size"])
+def file_size_ok(local_file_path):
+    return os.path.getsize(local_file_path) < int(_config["max_file_size"])
 
 
 def get_remote_file_path(local_file_path):
@@ -155,6 +155,9 @@ def get_local_file_path(remote_file_path):
     return path_join(dropbox_local_path, remote_file_path)
 
 
-config = _get_config()
-dropbox_local_path = config["dropbox_local_path"]
-excluded_folder_paths = config["excluded_folder_paths"]
+_config = _get_config()
+
+dropbox_local_path = _config["dropbox_local_path"]
+excluded_folder_paths = _config["excluded_folder_paths"]
+app_key = _config["app_key"]
+refresh_token = _config["refresh_token"]

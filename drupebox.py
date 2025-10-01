@@ -10,7 +10,7 @@ from log import note, fyi
 print("Drupebox sync started at", readable_time(time.time()))
 fyi("Initiating libraries")
 
-from config import config_ok_to_delete, skip, get_local_file_path
+from config import ok_to_delete_files, skip, get_local_file_path
 from db_utils import (
     remote_delete,
     get_remote_folder,
@@ -27,10 +27,8 @@ from db_utils import (
     item_not_found_at_remote,
 )
 from local_tree import (
-    get_live_local_tree,
-    store_tree,
     determine_locally_deleted_files,
-    file_tree_from_last_run,
+    store_current_tree,
 )
 from paths import path_exists, db, path_join
 from state_cache import store_state, time_last_run, excluded_folders_changed
@@ -43,10 +41,7 @@ def action_locally_deleted_files():
             "Changed list of excluded folder paths, skipping locally deleted files check"
         )
         return
-    file_tree_now = get_live_local_tree()
-    locally_deleted_files = determine_locally_deleted_files(
-        file_tree_now, file_tree_from_last_run
-    )
+    locally_deleted_files = determine_locally_deleted_files()
     for locally_deleted_file in locally_deleted_files:
         note("Found locally deleted file, so delete on Dropbox")
         remote_delete(locally_deleted_file)
@@ -100,7 +95,7 @@ def action_folder(remote_folder_path):
                 time_last_run > local_modified_time(local_file_path)
                 and is_recent_last_run(time_last_run)
                 and remote_file_path in remotely_deleted_files
-                and config_ok_to_delete()
+                and ok_to_delete_files()
             ):
                 note("Found local item that is deleted on remote Dropbox, so delete")
                 local_delete(local_file_path)
@@ -126,5 +121,5 @@ fyi("Syncing all other local and remote files changes")
 action_folder("")
 
 store_state(get_latest_db_state())
-store_tree(get_live_local_tree())
+store_current_tree()
 print("Drupebox sync complete at", readable_time(time.time()))

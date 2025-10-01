@@ -33,12 +33,13 @@ def store_state(cursor):
 
 def excluded_folders_changed():
     return (
-        not state_last_run["excluded_folder_paths_from_last_run"]
+        not _state_last_run["excluded_folder_paths_from_last_run"]
         == excluded_folder_paths
     )
 
 
 _state_cache_file = path_join(cache_folder, APP_NAME + "_last_state")
+_state_last_run = _load_last_run_state()
 
-state_last_run = _load_last_run_state()
-time_last_run = state_last_run["time_from_last_run"]
+time_last_run = _state_last_run["time_from_last_run"]
+cursor_from_last_run = _state_last_run["cursor_from_last_run"]

@@ -4,9 +4,9 @@
 import dropbox
 
 
-def dropbox_authorize(config_app_key):
+def dropbox_authorize(app_key):
     flow = dropbox.DropboxOAuth2FlowNoRedirect(
-        config_app_key, use_pkce=True, token_access_type="offline"
+        app_key, use_pkce=True, token_access_type="offline"
     )
     authorize_url = flow.start()
     print("1. Go to: " + authorize_url)
