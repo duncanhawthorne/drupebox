@@ -6,9 +6,10 @@ import time
 from log import note, fyi
 from utils import readable_time, is_recent_last_run
 
-# print early to give user feedback as imports can take some time
-print("Drupebox sync started at", readable_time(time.time()))
-fyi("Initiating libraries")
+if __name__ == "__main__":
+    # print early to give user feedback as imports can take some time
+    print("Drupebox sync started at", readable_time(time.time()))
+    fyi("Initiating libraries")
 
 from config import ok_to_delete_files, skip, get_local_file_path
 from db_utils import (
@@ -112,12 +113,13 @@ def action_folder(remote_folder_path):
             action_folder(db(paths.join(remote_folder_path, sub_folder)))
 
 
-remotely_deleted_files = determine_remotely_deleted_files()
-action_locally_deleted_files()
+if __name__ == "__main__":
+    remotely_deleted_files = determine_remotely_deleted_files()
+    action_locally_deleted_files()
 
-fyi("Syncing all other local and remote files changes")
-action_folder("")
+    fyi("Syncing all other local and remote files changes")
+    action_folder("")
 
-state.store_state(get_latest_db_state())
-local_tree.store_current_tree()
-print("Drupebox sync complete at", readable_time(time.time()))
+    state.store_state(get_latest_db_state())
+    local_tree.store_current_tree()
+    print("Drupebox sync complete at", readable_time(time.time()))
