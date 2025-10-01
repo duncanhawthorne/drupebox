@@ -3,8 +3,8 @@
 import os
 import time
 
-from utils import readable_time, is_recent_last_run
 from log import note, fyi
+from utils import readable_time, is_recent_last_run
 
 # print early to give user feedback as imports can take some time
 print("Drupebox sync started at", readable_time(time.time()))

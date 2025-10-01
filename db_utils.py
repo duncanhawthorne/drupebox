@@ -8,14 +8,14 @@ import dropbox
 from send2trash import send2trash
 
 import config
+import paths
+import state_cache
 from config import (
     get_remote_file_path,
     get_local_file_path,
 )
 from log import note, alert, fyi
-import paths
 from paths import db
-import state_cache
 from utils import is_server_connection_stale
 
 """

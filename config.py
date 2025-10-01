@@ -6,8 +6,8 @@ from functools import cache
 from configobj import ConfigObj
 
 import auth
-from log import note, fyi_ignore
 import paths
+from log import note, fyi_ignore
 
 APP_NAME = "drupebox"
 # To create new app key:
