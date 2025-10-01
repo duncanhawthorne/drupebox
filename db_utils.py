@@ -10,13 +10,9 @@ from send2trash import send2trash
 import config
 import paths
 import state_cache
-from config import (
-    get_remote_file_path,
-    get_local_file_path,
-)
+import utils
+from config import get_remote_file_path, get_local_file_path
 from log import note, alert, fyi
-from paths import db
-from utils import is_server_connection_stale
 
 """
 Variables in the following formats
@@ -139,7 +135,7 @@ _all_remote_files_cache = {_CACHE_TIME_KEY: 0.0, _CACHE_DATA_KEY: []}
 
 
 def _get_all_remote_files():
-    if is_server_connection_stale(_all_remote_files_cache[_CACHE_TIME_KEY]):
+    if utils.is_server_connection_stale(_all_remote_files_cache[_CACHE_TIME_KEY]):
         if _all_remote_files_cache[_CACHE_TIME_KEY] != 0:
             note("Last checked in with server over 60 seconds ago, refreshing")
         else:
