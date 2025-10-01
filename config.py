@@ -46,9 +46,7 @@ def _make_new_config_file(config_filename):
     config_tmp = ConfigObj()
     config_tmp.filename = config_filename
     config_tmp["app_key"] = _APP_KEY
-    config_tmp["refresh_token"] = auth.dropbox_authorize(
-        config_tmp["app_key"]
-    ).refresh_token
+    config_tmp["refresh_token"] = auth.dropbox_authorize(config_tmp["app_key"])
     config_tmp["dropbox_local_path"] = _determine_dropbox_folder_location()
     config_tmp["max_file_size"] = _MAX_FILE_SIZE
     config_tmp["excluded_folder_paths"] = [
