@@ -122,7 +122,7 @@ def get_remote_folder(remote_folder_path):
     return [
         element
         for element in _get_all_remote_files()
-        if db(paths.get_containing_folder_path(element.path_display))
+        if paths.get_containing_db_folder_path(element.path_display)
         == remote_folder_path
     ]
 

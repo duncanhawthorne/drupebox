@@ -12,6 +12,7 @@ def exists(path):
 
 def join(*paths):
     paths_list = list(paths)
+    assert len(paths_list) >= 2
     # enable joining /X with /Y to form /X/Y, given that os.path.join would just produce /Y
     for i in range(len(paths_list)):
         if i > 0:
@@ -55,9 +56,16 @@ def db(path):
     return path1.rstrip("/")
 
 
-def get_containing_folder_path(file_path):
+def get_containing_db_folder_path(remote_file_path):
     # rstrip for safety
-    return join(*tuple(file_path.rstrip("/").split("/")[0:-1]))
+    path_list = remote_file_path.rstrip("/").split("/")[1:-1]
+    if len(path_list) == 0:
+        out = "/"
+    elif len(path_list) == 1:
+        out = path_list[0]
+    else:
+        out = join(*tuple(path_list))
+    return db(out)
 
 
 def get_file_name(local_file_path):
