@@ -14,7 +14,7 @@ from config import (
 )
 from log import note, alert, fyi
 from paths import system_slash, get_containing_folder_path, db
-from state_cache import cursor_from_last_run
+import state_cache
 from utils import is_server_connection_stale
 
 """
@@ -155,7 +155,7 @@ def item_not_found_at_remote(remote_folder, remote_file_path):
 
 
 def determine_remotely_deleted_files():
-    cursor_last_run = cursor_from_last_run
+    cursor_last_run = state_cache.cursor_from_last_run
     fyi("Scanning for any remotely deleted files since last Drupebox run")
     deleted_files = []
     if cursor_last_run != "":

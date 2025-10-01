@@ -26,23 +26,20 @@ from db_utils import (
     get_latest_db_state,
     item_not_found_at_remote,
 )
-from local_tree import (
-    determine_locally_deleted_files,
-    store_current_tree,
-)
+import local_tree
 import paths
 from paths import db
-from state_cache import store_state, time_last_run, excluded_folders_changed
+import state_cache as state
 
 
 def action_locally_deleted_files():
     fyi("Syncing any locally deleted files since last Drupebox run")
-    if excluded_folders_changed():
+    if state.excluded_folders_changed():
         note(
             "Changed list of excluded folder paths, skipping locally deleted files check"
         )
         return
-    locally_deleted_files = determine_locally_deleted_files()
+    locally_deleted_files = local_tree.determine_locally_deleted_files()
     for locally_deleted_file in locally_deleted_files:
         note("Found locally deleted file, so delete on Dropbox")
         remote_delete(locally_deleted_file)
@@ -93,8 +90,8 @@ def action_folder(remote_folder_path):
             continue
         if item_not_found_at_remote(remote_folder, remote_file_path):
             if (
-                time_last_run > local_modified_time(local_file_path)
-                and is_recent_last_run(time_last_run)
+                state.time_last_run > local_modified_time(local_file_path)
+                and is_recent_last_run(state.time_last_run)
                 and remote_file_path in remotely_deleted_files
                 and ok_to_delete_files()
             ):
@@ -121,6 +118,6 @@ action_locally_deleted_files()
 fyi("Syncing all other local and remote files changes")
 action_folder("")
 
-store_state(get_latest_db_state())
-store_current_tree()
+state.store_state(get_latest_db_state())
+local_tree.store_current_tree()
 print("Drupebox sync complete at", readable_time(time.time()))

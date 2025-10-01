@@ -4,9 +4,8 @@ import time
 
 from configobj import ConfigObj
 
-from config import excluded_folder_paths, APP_NAME
+import config
 import paths
-from paths import cache_folder
 
 
 def _load_last_run_state():
@@ -28,18 +27,18 @@ def store_state(cursor):
     cached_tmp = ConfigObj(cache_filename)
     cached_tmp["cursor_from_last_run"] = cursor
     cached_tmp["time_from_last_run"] = time.time()
-    cached_tmp["excluded_folder_paths_from_last_run"] = excluded_folder_paths
+    cached_tmp["excluded_folder_paths_from_last_run"] = config.excluded_folder_paths
     cached_tmp.write()
 
 
 def excluded_folders_changed():
     return (
         not _state_last_run["excluded_folder_paths_from_last_run"]
-        == excluded_folder_paths
+        == config.excluded_folder_paths
     )
 
 
-_state_cache_file = paths.join(cache_folder, APP_NAME + "_last_state")
+_state_cache_file = paths.join(paths.cache_folder, config.APP_NAME + "_last_state")
 _state_last_run = _load_last_run_state()
 
 time_last_run = _state_last_run["time_from_last_run"]

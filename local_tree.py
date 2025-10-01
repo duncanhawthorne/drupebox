@@ -2,22 +2,22 @@
 # -*- coding: utf-8 -*-
 import os
 
-from config import excluded_folder_paths, dropbox_local_path, APP_NAME
+import config
 import paths
-from paths import unix_slash, add_trailing_slash, cache_folder
 
 
 def _get_live_local_tree():
     # get full list of local files in the Drupebox folder
     tree = []
     for root, dirs, files in os.walk(
-        dropbox_local_path, topdown=True, followlinks=True
+        config.dropbox_local_path, topdown=True, followlinks=True
     ):
-        root = unix_slash(root)  # format with forward slashes on all platforms
+        root = paths.unix_slash(root)  # format with forward slashes on all platforms
         dirs[:] = [
             d
             for d in dirs
-            if add_trailing_slash(paths.join(root, d)) not in excluded_folder_paths
+            if paths.add_trailing_slash(paths.join(root, d))
+            not in config.excluded_folder_paths
         ]  # test with slash at end to match excluded_folder_paths and to ensure prefix-free matching
         for name in files:
             tree.append(paths.join(root, name))
@@ -59,5 +59,5 @@ def store_current_tree():
     _store_tree(_get_live_local_tree())
 
 
-_tree_cache_file = paths.join(cache_folder, APP_NAME + "_last_seen_files")
+_tree_cache_file = paths.join(paths.cache_folder, config.APP_NAME + "_last_seen_files")
 _file_tree_from_last_run = _load_tree()
