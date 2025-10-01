@@ -36,7 +36,7 @@ def upload(local_file_path, remote_file_path):
                 mute=True,
                 mode=dropbox.files.WriteMode("overwrite", None),
             )
-        fix_local_time(remote_file, remote_file_path)
+        _fix_local_time(remote_file, remote_file_path)
     else:
         note("File above max size, ignoring: " + remote_file_path)
 
@@ -56,7 +56,7 @@ def download_file(remote_file_path, local_file_path):
     if os.path.exists(local_file_path):
         _delete_real(local_file_path)
     remote_file = _db_client.files_download_to_file(local_file_path, remote_file_path)
-    fix_local_time(remote_file, remote_file_path)
+    _fix_local_time(remote_file, remote_file_path)
 
 
 def local_delete(local_file_path):
@@ -104,7 +104,7 @@ def remote_modified_time(remote_item):
     return db_utc_time.timestamp()
 
 
-def fix_local_time(remote_file, remote_file_path):
+def _fix_local_time(remote_file, remote_file_path):
     note("Fix local time for file")
     file_modified_time = remote_modified_time(remote_file)
     local_file_path = get_local_file_path(remote_file_path)
