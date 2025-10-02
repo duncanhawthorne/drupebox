@@ -5,6 +5,8 @@ import time
 from datetime import timezone
 
 import dropbox
+from dropbox.exceptions import ApiError
+from dropbox.files import FileMetadata
 from send2trash import send2trash
 
 import config
@@ -40,7 +42,7 @@ def upload(local_file_path, remote_file_path):
 
 def create_remote_folder(remote_file_path):
     print("create", remote_file_path)
-    _db_client.files_create_folder(remote_file_path)
+    _db_client.files_create_folder_v2(remote_file_path)
 
 
 def create_local_folder(remote_file_path, local_file_path):
@@ -74,8 +76,8 @@ def remote_delete(local_file_path):
     remote_file_path = get_remote_file_path(local_file_path)
     alert(remote_file_path)
     try:
-        _db_client.files_delete(remote_file_path)
-    except dropbox.exceptions.ApiError as err:
+        _db_client.files_delete_v2(remote_file_path)
+    except ApiError as err:
         if (
             hasattr(err.error, "is_path_lookup")
             and err.error.is_path_lookup()
