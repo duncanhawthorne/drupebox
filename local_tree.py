@@ -50,7 +50,7 @@ def determine_locally_deleted_files():
     if not tree_last:  # i.e. tree_last == []
         return []
     for element in tree_last:
-        if not element in tree_now:
+        if element not in tree_now:
             deleted.append(element)
     return deleted
 
