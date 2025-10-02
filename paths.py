@@ -10,14 +10,13 @@ def exists(path):
     return os.path.exists(path)
 
 
-def join(*paths):
-    paths_list = list(paths)
-    assert len(paths_list) >= 2
+def join(first_path, *other_paths):
+    other_paths_list = list(other_paths)
+    assert len(other_paths_list) >= 1
     # enable joining /X with /Y to form /X/Y, given that os.path.join would just produce /Y
-    for i in range(len(paths_list)):
-        if i > 0:
-            paths_list[i] = paths_list[i].lstrip("/")
-    return unix_slash(os.path.join(*tuple(paths_list)))
+    for i in range(len(other_paths_list)):
+        other_paths_list[i] = other_paths_list[i].lstrip("/")
+    return unix_slash(os.path.join(first_path, *other_paths_list))
 
 
 def unix_slash(path):
@@ -64,7 +63,7 @@ def get_containing_db_folder_path(remote_file_path):
     elif len(path_list) == 1:
         out = path_list[0]
     else:
-        out = join(*tuple(path_list))
+        out = join(*path_list)
     return db(out)
 
 
