@@ -177,4 +177,3 @@ def get_latest_db_state():
 _db_client = dropbox.Dropbox(
     app_key=config.app_key, oauth2_refresh_token=config.refresh_token
 )
-_get_all_remote_files()
