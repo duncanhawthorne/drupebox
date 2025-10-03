@@ -106,35 +106,33 @@ def ok_to_delete_files():
 def _is_excluded_folder(local_folder_path):
     # forward slash at end of path ensures prefix-free
     local_folder_path_with_slash = paths.add_trailing_slash(local_folder_path)
-    remote_file_path = get_remote_file_path(local_folder_path_with_slash)
-    for excluded_folder_path in excluded_folder_paths:
-        if local_folder_path_with_slash.startswith(excluded_folder_path):
-            log.fyi_ignore(remote_file_path)
-            return True
-    return False
+    return any(
+        local_folder_path_with_slash.startswith(excluded_path)
+        for excluded_path in excluded_folder_paths
+    )
 
 
 def skip(local_file_path):
     local_file_name = paths.get_file_name(local_file_path)
-    for prefix in [".fuse_hidden"]:
-        if local_file_name.startswith(prefix):
-            log.fyi_ignore(prefix + " files")
-            return True
-    for suffix in [".pyc", "__pycache__", ".git"]:
-        if local_file_name.endswith(suffix):
-            log.fyi_ignore(suffix + " files")
-            return True
-    if local_file_name in [
-        ".DS_Store",
-        "._.DS_Store",
-        "DG1__DS_DIR_HDR",
-        "DG1__DS_VOL_HDR",
-    ]:
+    if (
+        any(local_file_name.startswith(prefix) for prefix in {".fuse_hidden"})
+        or any(
+            local_file_name.endswith(suffix)
+            for suffix in {".pyc", "__pycache__", ".git"}
+        )
+        or local_file_name
+        in {
+            ".DS_Store",
+            "._.DS_Store",
+            "DG1__DS_DIR_HDR",
+            "DG1__DS_VOL_HDR",
+        }
+        or _is_excluded_folder(local_file_path)
+    ):
         log.fyi_ignore(local_file_name)
         return True
-    if _is_excluded_folder(local_file_path):
-        return True
-    return False
+    else:
+        return False
 
 
 def file_size_ok(local_file_path):

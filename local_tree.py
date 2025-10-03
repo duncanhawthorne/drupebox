@@ -46,13 +46,7 @@ def _load_tree():
 def determine_locally_deleted_files():
     tree_now = _get_live_local_tree()
     tree_last = _file_tree_from_last_run
-    deleted = []
-    if not tree_last:  # i.e. tree_last == []
-        return []
-    for element in tree_last:
-        if element not in tree_now:
-            deleted.append(element)
-    return deleted
+    return [element for element in tree_last if element not in tree_now]
 
 
 def store_current_tree():

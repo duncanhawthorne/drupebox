@@ -148,26 +148,27 @@ def _get_all_remote_files():
 
 
 def item_not_found_at_remote(remote_folder, remote_file_path):
-    for remote_item in remote_folder:
-        if remote_item.path_display == remote_file_path:
-            return False
-    return True
+    return not any(
+        remote_item.path_display == remote_file_path for remote_item in remote_folder
+    )
 
 
 def determine_remotely_deleted_files():
     cursor_last_run = state_cache.cursor_from_last_run
     log.fyi("Scanning for any remotely deleted files since last Drupebox run")
-    deleted_files = []
     if cursor_last_run != "":
-        deltas = _db_client.files_list_folder_continue(cursor_last_run).entries
-        for delta in deltas:
-            if isinstance(delta, dropbox.files.DeletedMetadata):
-                deleted_files.append(delta.path_display)
-    if deleted_files:  # test not empty
-        log.note("The following files were deleted on Dropbox since last run")
-        for deleted_file in deleted_files:
-            log.note(deleted_file)
-    return deleted_files
+        deleted_files = [
+            delta.path_display
+            for delta in _db_client.files_list_folder_continue(cursor_last_run).entries
+            if isinstance(delta, dropbox.files.DeletedMetadata)
+        ]
+        if deleted_files:  # test not empty
+            log.note("The following files were deleted on Dropbox since last run")
+            for deleted_file in deleted_files:
+                log.note(deleted_file)
+        return deleted_files
+    else:
+        return []
 
 
 def get_latest_db_state():
