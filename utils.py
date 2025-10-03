@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import os
+import sys
 import time
 from datetime import datetime, timezone
 
@@ -20,3 +22,6 @@ def is_server_connection_stale(t):
 def is_recent_last_run(t):
     # safety to ensure can trust last cache
     return t > time.time() - 60 * 60 * 2
+
+
+is_windows = os.path.sep == "\\" and sys.platform == "win32"
