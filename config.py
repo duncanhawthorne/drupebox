@@ -129,7 +129,7 @@ def skip(local_file_path):
         }
         or _is_excluded_folder(local_file_path)
     ):
-        log.fyi_ignore(local_file_name)
+        log.fyi_ignore(local_file_path)
         return True
     else:
         return False
