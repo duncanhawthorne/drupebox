@@ -6,8 +6,8 @@ from functools import cache
 from configobj import ConfigObj
 
 import auth
+import log
 import paths
-from log import note, fyi_ignore
 
 APP_NAME = "drupebox"
 # To create new app key:
@@ -57,7 +57,7 @@ def _sanitize_config(config_tmp):
     sanitized_dropbox_path = paths.add_trailing_slash(original_dropbox_path)
     if original_dropbox_path != sanitized_dropbox_path:
         config_tmp["dropbox_local_path"] = sanitized_dropbox_path
-        note("sanitized dropbox path")
+        log.note("sanitized dropbox path")
         made_changes = True
 
     # format excluded paths with forward slashes on all platforms and end with forward slash to ensure prefix-free
@@ -67,7 +67,7 @@ def _sanitize_config(config_tmp):
     ]
     if original_excluded_paths != sanitized_excluded_paths:
         config_tmp["excluded_folder_paths"] = sanitized_excluded_paths
-        note("sanitized excluded paths")
+        log.note("sanitized excluded paths")
         made_changes = True
 
     if made_changes:
@@ -98,7 +98,7 @@ def _get_config():
 def ok_to_delete_files():
     ok_to_delete = _config.as_bool("really_delete_local_files")
     if not ok_to_delete:
-        note("Drupebox not set to delete local files, so force reupload local file")
+        log.note("Drupebox not set to delete local files, so force reupload local file")
         # edit the drupebox config file really_delete_local_files if you want local files to be deleted
     return ok_to_delete
 
@@ -109,7 +109,7 @@ def _is_excluded_folder(local_folder_path):
     remote_file_path = get_remote_file_path(local_folder_path_with_slash)
     for excluded_folder_path in excluded_folder_paths:
         if local_folder_path_with_slash.startswith(excluded_folder_path):
-            fyi_ignore(remote_file_path)
+            log.fyi_ignore(remote_file_path)
             return True
     return False
 
@@ -118,11 +118,11 @@ def skip(local_file_path):
     local_file_name = paths.get_file_name(local_file_path)
     for prefix in [".fuse_hidden"]:
         if local_file_name.startswith(prefix):
-            fyi_ignore(prefix + " files")
+            log.fyi_ignore(prefix + " files")
             return True
     for suffix in [".pyc", "__pycache__", ".git"]:
         if local_file_name.endswith(suffix):
-            fyi_ignore(suffix + " files")
+            log.fyi_ignore(suffix + " files")
             return True
     if local_file_name in [
         ".DS_Store",
@@ -130,7 +130,7 @@ def skip(local_file_path):
         "DG1__DS_DIR_HDR",
         "DG1__DS_VOL_HDR",
     ]:
-        fyi_ignore(local_file_name)
+        log.fyi_ignore(local_file_name)
         return True
     if _is_excluded_folder(local_file_path):
         return True

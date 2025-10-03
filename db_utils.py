@@ -10,11 +10,11 @@ from dropbox.files import FileMetadata
 from send2trash import send2trash
 
 import config
+import log
 import paths
 import state_cache
 import utils
 from config import get_remote_file_path, get_local_file_path
-from log import note, alert, fyi
 
 """
 Variables in the following formats
@@ -37,7 +37,7 @@ def upload(local_file_path, remote_file_path):
             )
         _fix_local_time(remote_file, remote_file_path)
     else:
-        note("File above max size, ignoring: " + remote_file_path)
+        log.note("File above max size, ignoring: " + remote_file_path)
 
 
 def create_remote_folder(remote_file_path):
@@ -63,7 +63,7 @@ def local_delete(local_file_path):
     assert (
         config.ok_to_delete_files()
     )  # as already checked this before calling local_delete
-    alert(remote_file_path)
+    log.alert(remote_file_path)
     _delete_real(local_file_path)
 
 
@@ -74,7 +74,7 @@ def _delete_real(local_file_path):
 
 def remote_delete(local_file_path):
     remote_file_path = get_remote_file_path(local_file_path)
-    alert(remote_file_path)
+    log.alert(remote_file_path)
     try:
         _db_client.files_delete_v2(remote_file_path)
     except ApiError as err:
@@ -84,9 +84,9 @@ def remote_delete(local_file_path):
             and hasattr(err.error.get_path_lookup(), "is_not_found")
             and err.error.get_path_lookup().is_not_found()
         ):
-            note("Tried to delete file on dropbox, but it was not there")
+            log.note("Tried to delete file on dropbox, but it was not there")
         else:
-            note("Unexpected Dropbox API error on delete: " + str(err))
+            log.note("Unexpected Dropbox API error on delete: " + str(err))
 
 
 def is_file(remote_item):
@@ -104,7 +104,7 @@ def remote_modified_time(remote_item):
 
 
 def _fix_local_time(remote_file, remote_file_path):
-    note("Fix local time for file")
+    log.note("Fix local time for file")
     file_modified_time = remote_modified_time(remote_file)
     local_file_path = get_local_file_path(remote_file_path)
     os.utime(
@@ -139,9 +139,9 @@ _all_remote_files_cache = {_CACHE_TIME_KEY: 0.0, _CACHE_DATA_KEY: []}
 def _get_all_remote_files():
     if utils.is_server_connection_stale(_all_remote_files_cache[_CACHE_TIME_KEY]):
         if _all_remote_files_cache[_CACHE_TIME_KEY] != 0:
-            note("Last checked in with server over 60 seconds ago, refreshing")
+            log.note("Last checked in with server over 60 seconds ago, refreshing")
         else:
-            fyi("Scanning for files on Dropbox")
+            log.fyi("Scanning for files on Dropbox")
         _all_remote_files_cache[_CACHE_DATA_KEY] = _get_all_remote_files_real()
         _all_remote_files_cache[_CACHE_TIME_KEY] = time.time()
     return _all_remote_files_cache[_CACHE_DATA_KEY]
@@ -156,7 +156,7 @@ def item_not_found_at_remote(remote_folder, remote_file_path):
 
 def determine_remotely_deleted_files():
     cursor_last_run = state_cache.cursor_from_last_run
-    fyi("Scanning for any remotely deleted files since last Drupebox run")
+    log.fyi("Scanning for any remotely deleted files since last Drupebox run")
     deleted_files = []
     if cursor_last_run != "":
         deltas = _db_client.files_list_folder_continue(cursor_last_run).entries
@@ -164,9 +164,9 @@ def determine_remotely_deleted_files():
             if isinstance(delta, dropbox.files.DeletedMetadata):
                 deleted_files.append(delta.path_display)
     if deleted_files:  # test not empty
-        note("The following files were deleted on Dropbox since last run")
+        log.note("The following files were deleted on Dropbox since last run")
         for deleted_file in deleted_files:
-            note(deleted_file)
+            log.note(deleted_file)
     return deleted_files
 
 
