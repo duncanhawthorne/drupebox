@@ -20,8 +20,15 @@ APP_NAME = "drupebox"
 # Click "Submit"
 # On the Settings tab, copy the App key
 # Update the APP_KEY variable below to your App key
-_APP_KEY = "1skff241na3x0at"
-_MAX_FILE_SIZE = 100000000
+_APP_KEY_DEFAULT = "1skff241na3x0at"
+_MAX_FILE_SIZE_DEFAULT = 100000000
+
+_APP_KEY_KEY = "app_key"
+_REFRESH_TOKEN_KEY = "refresh_token"
+_DROPBOX_LOCAL_PATH_KEY = "dropbox_local_path"
+_MAX_FILE_SIZE_KEY = "max_file_size"
+_EXCLUDED_FOLDER_PATHS_KEY = "excluded_folder_paths"
+_REALLY_DELETE_LOCAL_FILES_KEY = "really_delete_local_files"
 
 
 def _determine_dropbox_folder_location():
@@ -50,26 +57,28 @@ def _make_new_config_file(config_filename):
 def _initalise_config_file(config_tmp):
     # if properly configured config file, no action taken
     made_changes = False
-    if "app_key" not in config_tmp:
-        config_tmp["app_key"] = _APP_KEY
+    if _APP_KEY_KEY not in config_tmp:
+        config_tmp[_APP_KEY_KEY] = _APP_KEY_DEFAULT
         made_changes = True
-    if "refresh_token" not in config_tmp:
-        config_tmp["refresh_token"] = auth.dropbox_authorize(config_tmp["app_key"])
+    if _REFRESH_TOKEN_KEY not in config_tmp:
+        config_tmp[_REFRESH_TOKEN_KEY] = auth.dropbox_authorize(
+            config_tmp[_APP_KEY_KEY]
+        )
         made_changes = True
-    if "dropbox_local_path" not in config_tmp:
-        config_tmp["dropbox_local_path"] = _determine_dropbox_folder_location()
+    if _DROPBOX_LOCAL_PATH_KEY not in config_tmp:
+        config_tmp[_DROPBOX_LOCAL_PATH_KEY] = _determine_dropbox_folder_location()
         made_changes = True
-    if "max_file_size" not in config_tmp:
-        config_tmp["max_file_size"] = _MAX_FILE_SIZE
+    if _MAX_FILE_SIZE_KEY not in config_tmp:
+        config_tmp[_MAX_FILE_SIZE_KEY] = _MAX_FILE_SIZE_DEFAULT
         made_changes = True
-    if "excluded_folder_paths" not in config_tmp:
-        config_tmp["excluded_folder_paths"] = [
+    if _EXCLUDED_FOLDER_PATHS_KEY not in config_tmp:
+        config_tmp[_EXCLUDED_FOLDER_PATHS_KEY] = [
             "/home/pi/SUPER_SECRET_LOCATION_1/",
             "/home/pi/SUPER SECRET LOCATION 2/",
         ]
         made_changes = True
-    if "really_delete_local_files" not in config_tmp:
-        config_tmp["really_delete_local_files"] = False
+    if _REALLY_DELETE_LOCAL_FILES_KEY not in config_tmp:
+        config_tmp[_REALLY_DELETE_LOCAL_FILES_KEY] = False
         made_changes = True
 
     if made_changes:
@@ -80,20 +89,20 @@ def _initalise_config_file(config_tmp):
 def _sanitize_config(config_tmp):
     made_changes = False
     # format dropbox local path with forward slashes on all platforms and end with forward slash to ensure prefix-free
-    original_dropbox_path = config_tmp["dropbox_local_path"]
+    original_dropbox_path = config_tmp[_DROPBOX_LOCAL_PATH_KEY]
     sanitized_dropbox_path = paths.add_trailing_slash(original_dropbox_path)
     if original_dropbox_path != sanitized_dropbox_path:
-        config_tmp["dropbox_local_path"] = sanitized_dropbox_path
+        config_tmp[_DROPBOX_LOCAL_PATH_KEY] = sanitized_dropbox_path
         log.note("Sanitized dropbox path")
         made_changes = True
 
     # format excluded paths with forward slashes on all platforms and end with forward slash to ensure prefix-free
-    original_excluded_paths = config_tmp.get("excluded_folder_paths", [])
+    original_excluded_paths = config_tmp.get(_EXCLUDED_FOLDER_PATHS_KEY, [])
     sanitized_excluded_paths = [
         paths.add_trailing_slash(p) for p in original_excluded_paths
     ]
     if original_excluded_paths != sanitized_excluded_paths:
-        config_tmp["excluded_folder_paths"] = sanitized_excluded_paths
+        config_tmp[_EXCLUDED_FOLDER_PATHS_KEY] = sanitized_excluded_paths
         log.note("Sanitized excluded paths")
         made_changes = True
 
@@ -123,7 +132,7 @@ def _get_config():
 
 
 def ok_to_delete_files():
-    ok_to_delete = _config.as_bool("really_delete_local_files")
+    ok_to_delete = _config.as_bool(_REALLY_DELETE_LOCAL_FILES_KEY)
     if not ok_to_delete:
         log.note("Drupebox not set to delete local files, so force reupload local file")
         # edit the drupebox config file really_delete_local_files if you want local files to be deleted
@@ -163,7 +172,7 @@ def skip(local_file_path):
 
 
 def file_size_ok(local_file_path):
-    return os.path.getsize(local_file_path) < int(_config["max_file_size"])
+    return os.path.getsize(local_file_path) < int(_config[_MAX_FILE_SIZE_KEY])
 
 
 def get_remote_file_path(local_file_path):
@@ -176,7 +185,7 @@ def get_local_file_path(remote_file_path):
 
 _config = _get_config()
 
-dropbox_local_path = _config["dropbox_local_path"]
-excluded_folder_paths = _config["excluded_folder_paths"]
-app_key = _config["app_key"]
-refresh_token = _config["refresh_token"]
+dropbox_local_path = _config[_DROPBOX_LOCAL_PATH_KEY]
+excluded_folder_paths = _config[_EXCLUDED_FOLDER_PATHS_KEY]
+app_key = _config[_APP_KEY_KEY]
+refresh_token = _config[_REFRESH_TOKEN_KEY]
