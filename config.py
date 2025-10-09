@@ -25,29 +25,56 @@ _MAX_FILE_SIZE = 100000000
 
 
 def _determine_dropbox_folder_location():
-    default_path = paths.join(paths.home, "Dropbox")
-    user_path_tmp = paths.unix_slash(
-        input(f"Enter dropbox local path (or press enter for {default_path}/) ").strip()
-    )
-    user_path_tmp = user_path_tmp or default_path
-    user_path_tmp = paths.add_trailing_slash(user_path_tmp)
-    os.makedirs(user_path_tmp, exist_ok=True)
-    return user_path_tmp
+    while True:
+        try:
+            default_path = paths.join(paths.home, "Dropbox")
+            user_path_tmp = paths.unix_slash(
+                input(
+                    f"Enter dropbox local path (or press enter for {default_path}/) "
+                ).strip()
+            )
+            user_path_tmp = user_path_tmp or default_path
+            user_path_tmp = paths.add_trailing_slash(user_path_tmp)
+            os.makedirs(user_path_tmp, exist_ok=True)
+            return user_path_tmp
+        except Exception as e:
+            print(e)
 
 
 def _make_new_config_file(config_filename):
     config_tmp = ConfigObj()
     config_tmp.filename = config_filename
-    config_tmp["app_key"] = _APP_KEY
-    config_tmp["refresh_token"] = auth.dropbox_authorize(config_tmp["app_key"])
-    config_tmp["dropbox_local_path"] = _determine_dropbox_folder_location()
-    config_tmp["max_file_size"] = _MAX_FILE_SIZE
-    config_tmp["excluded_folder_paths"] = [
-        "/home/pi/SUPER_SECRET_LOCATION_1/",
-        "/home/pi/SUPER SECRET LOCATION 2/",
-    ]
-    config_tmp["really_delete_local_files"] = False
     config_tmp.write()
+
+
+def _initalise_config_file(config_tmp):
+    # if properly configured config file, no action taken
+    made_changes = False
+    if "app_key" not in config_tmp:
+        config_tmp["app_key"] = _APP_KEY
+        made_changes = True
+    if "refresh_token" not in config_tmp:
+        config_tmp["refresh_token"] = auth.dropbox_authorize(config_tmp["app_key"])
+        made_changes = True
+    if "dropbox_local_path" not in config_tmp:
+        config_tmp["dropbox_local_path"] = _determine_dropbox_folder_location()
+        made_changes = True
+    if "max_file_size" not in config_tmp:
+        config_tmp["max_file_size"] = _MAX_FILE_SIZE
+        made_changes = True
+    if "excluded_folder_paths" not in config_tmp:
+        config_tmp["excluded_folder_paths"] = [
+            "/home/pi/SUPER_SECRET_LOCATION_1/",
+            "/home/pi/SUPER SECRET LOCATION 2/",
+        ]
+        made_changes = True
+    if "really_delete_local_files" not in config_tmp:
+        config_tmp["really_delete_local_files"] = False
+        made_changes = True
+
+    if made_changes:
+        log.note("Initialised config file")
+        config_tmp.write()
 
 
 def _sanitize_config(config_tmp):
@@ -57,7 +84,7 @@ def _sanitize_config(config_tmp):
     sanitized_dropbox_path = paths.add_trailing_slash(original_dropbox_path)
     if original_dropbox_path != sanitized_dropbox_path:
         config_tmp["dropbox_local_path"] = sanitized_dropbox_path
-        log.note("sanitized dropbox path")
+        log.note("Sanitized dropbox path")
         made_changes = True
 
     # format excluded paths with forward slashes on all platforms and end with forward slash to ensure prefix-free
@@ -67,7 +94,7 @@ def _sanitize_config(config_tmp):
     ]
     if original_excluded_paths != sanitized_excluded_paths:
         config_tmp["excluded_folder_paths"] = sanitized_excluded_paths
-        log.note("sanitized excluded paths")
+        log.note("Sanitized excluded paths")
         made_changes = True
 
     if made_changes:
@@ -79,10 +106,10 @@ def _get_config_real():
     os.makedirs(config_dir, exist_ok=True)
     config_filename = paths.join(config_dir, APP_NAME)
     if not paths.exists(config_filename):
-        # First time only
         _make_new_config_file(config_filename)
 
     config_tmp = ConfigObj(config_filename)
+    _initalise_config_file(config_tmp)
 
     _sanitize_config(config_tmp)
 
