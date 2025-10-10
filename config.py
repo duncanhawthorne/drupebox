@@ -86,6 +86,12 @@ def _initialize_config_file(config_tmp):
         log.note("Initialised config file")
         config_tmp.write()
 
+    # fix types where read to incorrect types from config file
+    config_tmp[_REALLY_DELETE_LOCAL_FILES_KEY] = config_tmp.as_bool(
+        _REALLY_DELETE_LOCAL_FILES_KEY
+    )
+    config_tmp[_MAX_FILE_SIZE_KEY] = int(config_tmp[_MAX_FILE_SIZE_KEY])
+
 
 def _sanitize_config(config_tmp):
     made_changes = False
@@ -133,7 +139,7 @@ def _get_config():
 
 
 def ok_to_delete_files():
-    ok_to_delete = _config.as_bool(_REALLY_DELETE_LOCAL_FILES_KEY)
+    ok_to_delete = _config[_REALLY_DELETE_LOCAL_FILES_KEY]
     if not ok_to_delete:
         log.note("Drupebox not set to delete local files, so force reupload local file")
         # edit the drupebox config file really_delete_local_files if you want local files to be deleted
@@ -173,7 +179,7 @@ def skip(local_file_path):
 
 
 def file_size_ok(local_file_path):
-    return os.path.getsize(local_file_path) < int(_config[_MAX_FILE_SIZE_KEY])
+    return os.path.getsize(local_file_path) < _config[_MAX_FILE_SIZE_KEY]
 
 
 def get_remote_file_path(local_file_path):

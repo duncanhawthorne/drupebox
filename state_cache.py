@@ -18,7 +18,7 @@ def _load_last_run_state():
         cache_tmp = ConfigObj()
         cache_tmp.filename = cache_filename
         cache_tmp[_CURSOR_FROM_LAST_RUN_KEY] = ""
-        cache_tmp[_TIME_FROM_LAST_RUN_KEY] = 0
+        cache_tmp[_TIME_FROM_LAST_RUN_KEY] = 0.0
         cache_tmp[_EXCLUDED_FOLDER_PATHS_FROM_LAST_RUN_KEY] = []
     else:
         cache_tmp = ConfigObj(cache_filename)
