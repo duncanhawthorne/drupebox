@@ -46,7 +46,7 @@ def _load_tree():
 def determine_locally_deleted_files():
     # need to maintain order of two lists
     tree_now = _get_live_local_tree()
-    tree_last = _file_tree_from_last_run
+    tree_last = _load_tree()
     return [element for element in tree_last if element not in tree_now]
 
 
@@ -55,4 +55,3 @@ def store_current_tree():
 
 
 _tree_cache_file = paths.join(paths.cache_folder, config.APP_NAME + "_last_seen_files")
-_file_tree_from_last_run = _load_tree()
