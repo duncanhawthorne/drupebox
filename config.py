@@ -3,6 +3,7 @@
 
 import os
 from functools import cache
+
 from configobj import ConfigObj
 
 import auth
@@ -54,7 +55,7 @@ def _make_new_config_file(config_filename):
     config_tmp.write()
 
 
-def _initalise_config_file(config_tmp):
+def _initialize_config_file(config_tmp):
     # if properly configured config file, no action taken
     made_changes = False
     if _APP_KEY_KEY not in config_tmp:
@@ -118,7 +119,7 @@ def _get_config_real():
         _make_new_config_file(config_filename)
 
     config_tmp = ConfigObj(config_filename)
-    _initalise_config_file(config_tmp)
+    _initialize_config_file(config_tmp)
 
     _sanitize_config(config_tmp)
 

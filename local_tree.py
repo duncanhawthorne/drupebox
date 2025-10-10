@@ -44,6 +44,7 @@ def _load_tree():
 
 
 def determine_locally_deleted_files():
+    # need to maintain order of two lists
     tree_now = _get_live_local_tree()
     tree_last = _file_tree_from_last_run
     return [element for element in tree_last if element not in tree_now]

@@ -3,13 +3,13 @@
 import os
 import time
 
-from log import note, fyi
+import log
 from utils import readable_time, is_recent_last_run
 
 if __name__ == "__main__":
     # print early to give user feedback as imports can take some time
     print("Drupebox sync started at", readable_time(time.time()))
-    fyi("Initiating libraries")
+    log.fyi("Initiating libraries")
 
 from config import ok_to_delete_files, skip, get_local_file_path
 from db_utils import (
@@ -34,20 +34,20 @@ import state_cache as state
 
 
 def action_locally_deleted_files():
-    fyi("Syncing any locally deleted files since last Drupebox run")
+    log.fyi("Syncing any locally deleted files since last Drupebox run")
     if state.excluded_folders_changed():
-        note(
+        log.note(
             "Changed list of excluded folder paths, skipping locally deleted files check"
         )
         return
     locally_deleted_files = local_tree.determine_locally_deleted_files()
     for locally_deleted_file in locally_deleted_files:
-        note("Found locally deleted file, so delete on Dropbox")
+        log.note("Found locally deleted file, so delete on Dropbox")
         remote_delete(locally_deleted_file)
 
 
 def action_folder(remote_folder_path):
-    fyi(remote_folder_path)
+    log.fyi(remote_folder_path)
 
     local_folder_path = get_local_file_path(remote_folder_path)
 
@@ -66,9 +66,9 @@ def action_folder(remote_folder_path):
             and remote_modified_time(remote_item) > local_modified_time(local_file_path)
         ):
             if paths.exists(local_file_path):
-                note("Found updated file on remote Dropbox, so download")
+                log.note("Found updated file on remote Dropbox, so download")
             else:
-                note("Found new file on remote Dropbox, so download")
+                log.note("Found new file on remote Dropbox, so download")
 
             if is_file(remote_item):
                 download_file(remote_file_path, local_file_path)
@@ -79,7 +79,7 @@ def action_folder(remote_folder_path):
             local_file_path
         ) > remote_modified_time(remote_item):
 
-            note("Local file has been updated, so upload")
+            log.note("Local file has been updated, so upload")
             upload(local_file_path, remote_file_path)
 
     # Go through local items
@@ -96,14 +96,18 @@ def action_folder(remote_folder_path):
                 and remote_file_path in remotely_deleted_files
                 and ok_to_delete_files()
             ):
-                note("Found local item that is deleted on remote Dropbox, so delete")
+                log.note(
+                    "Found local item that is deleted on remote Dropbox, so delete"
+                )
                 local_delete(local_file_path)
             else:
                 if os.path.isdir(local_file_path):
-                    note("Found local folder that isn't on remote Dropbox, so create")
+                    log.note(
+                        "Found local folder that isn't on remote Dropbox, so create"
+                    )
                     create_remote_folder(remote_file_path)
                 else:
-                    note("Found local file that isn't on remote Dropbox, so upload")
+                    log.note("Found local file that isn't on remote Dropbox, so upload")
                     upload(local_file_path, remote_file_path)
 
     # Go through sub-folders and repeat
@@ -117,7 +121,7 @@ if __name__ == "__main__":
     remotely_deleted_files = determine_remotely_deleted_files()
     action_locally_deleted_files()
 
-    fyi("Syncing all other local and remote files changes")
+    log.fyi("Syncing all other local and remote files changes")
     action_folder("")
 
     state.store_state(get_latest_db_state())
