@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os
-import time
-
-import log
-from utils import readable_time, is_recent_last_run
 
 if __name__ == "__main__":
     # print early to give user feedback as imports can take a few seconds on raspberry pi
-    log.fyi("Initiating libraries")
+    print("Initiating libraries")
 
+import os
+import time
+
+import local_tree
+import log
+import paths
+import state_cache as state
 from config import ok_to_delete_files, skip, get_local_file_path
 from db_utils import (
     remote_delete,
@@ -26,10 +28,8 @@ from db_utils import (
     get_latest_db_state,
     item_not_found_at_remote,
 )
-import local_tree
-import paths
 from paths import db
-import state_cache as state
+from utils import readable_time, is_recent_last_run
 
 
 def action_locally_deleted_files():
