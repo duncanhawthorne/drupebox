@@ -141,7 +141,9 @@ def _get_config():
 def ok_to_delete_files():
     ok_to_delete = _config[_REALLY_DELETE_LOCAL_FILES_KEY]
     if not ok_to_delete:
-        log.note("Drupebox not set to delete local files, so force reupload local file")
+        log.note(
+            "Drupebox config file not set to delete local files, so force reupload local file"
+        )
         # edit the drupebox config file really_delete_local_files if you want local files to be deleted
     return ok_to_delete
 
