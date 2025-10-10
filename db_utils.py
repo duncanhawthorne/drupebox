@@ -178,7 +178,7 @@ def remotely_deleted_files():
     return _determine_remotely_deleted_files()
 
 
-def get_latest_db_state():
+def get_latest_state():
     return _db_client.files_list_folder_get_latest_cursor("", recursive=True).cursor
 
 

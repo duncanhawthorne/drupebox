@@ -40,7 +40,7 @@ def add_trailing_slash(path):
     return path
 
 
-def db(path):
+def dbfmt(path):
     # Fix path for use in dropbox, i.e. to have leading slash, except dropbox root folder is "" not "/"
     if path == "":
         return path

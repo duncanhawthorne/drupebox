@@ -185,7 +185,7 @@ def file_size_ok(local_file_path):
 
 
 def get_remote_file_path(local_file_path):
-    return paths.db(local_file_path[len(dropbox_local_path) :])
+    return paths.dbfmt(local_file_path[len(dropbox_local_path) :])
 
 
 def get_local_file_path(remote_file_path):
