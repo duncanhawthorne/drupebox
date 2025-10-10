@@ -7,8 +7,7 @@ import log
 from utils import readable_time, is_recent_last_run
 
 if __name__ == "__main__":
-    # print early to give user feedback as imports can take some time
-    print("Drupebox sync started at", readable_time(time.time()))
+    # print early to give user feedback as imports can take a few seconds on raspberry pi
     log.fyi("Initiating libraries")
 
 from config import ok_to_delete_files, skip, get_local_file_path
@@ -23,7 +22,7 @@ from db_utils import (
     upload,
     create_remote_folder,
     local_delete,
-    determine_remotely_deleted_files,
+    remotely_deleted_files,
     get_latest_db_state,
     item_not_found_at_remote,
 )
@@ -93,7 +92,7 @@ def action_folder(remote_folder_path):
             if (
                 state.time_last_run > local_modified_time(local_file_path)
                 and is_recent_last_run(state.time_last_run)
-                and remote_file_path in remotely_deleted_files
+                and remote_file_path in remotely_deleted_files()
                 and ok_to_delete_files()
             ):
                 log.note(
@@ -117,8 +116,8 @@ def action_folder(remote_folder_path):
             action_folder(db(paths.join(remote_folder_path, sub_folder)))
 
 
-if __name__ == "__main__":
-    remotely_deleted_files = determine_remotely_deleted_files()
+def main():
+    print("Drupebox sync started at", readable_time(time.time()))
     action_locally_deleted_files()
 
     log.fyi("Syncing all other local and remote files changes")
@@ -127,3 +126,7 @@ if __name__ == "__main__":
     state.store_state(get_latest_db_state())
     local_tree.store_current_tree()
     print("Drupebox sync complete at", readable_time(time.time()))
+
+
+if __name__ == "__main__":
+    main()

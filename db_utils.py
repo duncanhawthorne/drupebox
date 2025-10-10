@@ -3,6 +3,7 @@
 import os
 import time
 from datetime import timezone
+from functools import cache
 
 import dropbox
 from dropbox.exceptions import ApiError
@@ -153,7 +154,7 @@ def item_not_found_at_remote(remote_folder, remote_file_path):
     )
 
 
-def determine_remotely_deleted_files():
+def _determine_remotely_deleted_files():
     cursor_last_run = state_cache.cursor_from_last_run
     log.fyi("Scanning for any remotely deleted files since last Drupebox run")
     if cursor_last_run != "":
@@ -169,6 +170,12 @@ def determine_remotely_deleted_files():
         return deleted_files
     else:
         return []
+
+
+@cache
+def remotely_deleted_files():
+    # uses cache decorator, so after first call, just returns cache of last call
+    return _determine_remotely_deleted_files()
 
 
 def get_latest_db_state():
