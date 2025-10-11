@@ -21,8 +21,12 @@ APP_NAME = "drupebox"
 # Click "Submit"
 # On the Settings tab, copy the App key
 # Update the APP_KEY variable below to your App key
+
+# default variables below
+# edit config file if want to change after first run
 _APP_KEY_DEFAULT = "1skff241na3x0at"
 _MAX_FILE_SIZE_DEFAULT = 100000000
+_REALLY_DELETE_LOCAL_FILES_DEFAULT = False
 
 _APP_KEY_KEY = "app_key"
 _REFRESH_TOKEN_KEY = "refresh_token"
@@ -79,7 +83,7 @@ def _initialize_config_file(config_tmp):
         ]
         made_changes = True
     if _REALLY_DELETE_LOCAL_FILES_KEY not in config_tmp:
-        config_tmp[_REALLY_DELETE_LOCAL_FILES_KEY] = False
+        config_tmp[_REALLY_DELETE_LOCAL_FILES_KEY] = _REALLY_DELETE_LOCAL_FILES_DEFAULT
         made_changes = True
 
     if made_changes:
