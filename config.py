@@ -54,13 +54,6 @@ def _determine_dropbox_folder_location():
             print(e)
 
 
-def _make_new_config_file(config_filename):
-    """Creates a new, empty configuration file."""
-    config_tmp = ConfigObj()
-    config_tmp.filename = config_filename
-    config_tmp.write()
-
-
 def _initialize_config_file(config_tmp):
     """Initializes the configuration file with default values if they are missing."""
     # if properly configured config file, no action taken
@@ -128,14 +121,12 @@ def _sanitize_config(config_tmp):
 def _get_config_real():
     """Loads the configuration from the file, initializes, and sanitizes it."""
     config_dir = paths.join(paths.home, ".config")
+
     os.makedirs(config_dir, exist_ok=True)
     config_filename = paths.join(config_dir, APP_NAME)
-    if not paths.exists(config_filename):
-        _make_new_config_file(config_filename)
 
-    config_tmp = ConfigObj(config_filename)
+    config_tmp = ConfigObj(config_filename, encoding="utf-8")
     _initialize_config_file(config_tmp)
-
     _sanitize_config(config_tmp)
 
     return config_tmp
