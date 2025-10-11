@@ -53,7 +53,7 @@ def create_local_folder(remote_file_path, local_file_path):
 
 def download_file(remote_file_path, local_file_path):
     print("downld", remote_file_path)
-    if os.path.exists(local_file_path):
+    if paths.exists(local_file_path):
         _delete_real(local_file_path)
     remote_file = _db_client.files_download_to_file(local_file_path, remote_file_path)
     _fix_local_time(remote_file, remote_file_path)

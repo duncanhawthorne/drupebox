@@ -34,7 +34,7 @@ def _store_tree(tree):
 
 
 def _load_tree():
-    if not os.path.exists(_tree_cache_file):
+    if not paths.exists(_tree_cache_file):
         return []
     with open(_tree_cache_file, "r", encoding="utf-8") as f:
         content = f.read()

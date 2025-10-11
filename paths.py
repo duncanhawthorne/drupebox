@@ -62,7 +62,7 @@ def get_file_name(local_file_path):
 
 
 if not utils.is_windows:
-    if os.path.exists("/dev/shm"):
+    if exists("/dev/shm"):
         cache_folder = "/dev/shm"
     else:
         cache_folder = "/tmp"
