@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 
 
 def readable_time(unix_time):
+    """Converts a Unix timestamp to a human-readable string."""
     return (
         datetime.fromtimestamp(float(unix_time), tz=timezone.utc).strftime(
             "%a, %d %b %Y %H:%M:%S +0000"
@@ -16,10 +17,12 @@ def readable_time(unix_time):
 
 
 def is_server_connection_stale(t):
+    """Checks if the server connection is stale."""
     return time.time() > t + 60
 
 
 def is_recent_last_run(t):
+    """Checks if the last run was recent."""
     # ensures have run drupebox recently
     # This test is used before delete local file
     # when find a local file and no file at remote and file is showing in dropbox remotely_deleted_files.

@@ -27,6 +27,7 @@ local_folder_path -> posix format, no trailing slash
 
 
 def upload(local_file_path, remote_file_path):
+    """Uploads a local file to Dropbox."""
     if config.file_size_ok(local_file_path):
         print("upload", remote_file_path)
         with open(local_file_path, "rb") as f:
@@ -42,16 +43,19 @@ def upload(local_file_path, remote_file_path):
 
 
 def create_remote_folder(remote_file_path):
+    """Creates a folder on Dropbox."""
     print("create", remote_file_path)
     _db_client.files_create_folder_v2(remote_file_path)
 
 
 def create_local_folder(remote_file_path, local_file_path):
+    """Creates a local folder."""
     print("create", remote_file_path)
     os.makedirs(local_file_path, exist_ok=True)
 
 
 def download_file(remote_file_path, local_file_path):
+    """Downloads a file from Dropbox to the local filesystem."""
     print("downld", remote_file_path)
     if paths.exists(local_file_path):
         _delete_real(local_file_path)
@@ -60,6 +64,7 @@ def download_file(remote_file_path, local_file_path):
 
 
 def local_delete(local_file_path):
+    """Deletes a local file by sending it to the trash."""
     remote_file_path = get_remote_file_path(local_file_path)
     assert (
         config.ok_to_delete_files()
@@ -69,11 +74,13 @@ def local_delete(local_file_path):
 
 
 def _delete_real(local_file_path):
+    """Sends a file to the system's trash."""
     # deleting local files uses send2trash so no files are permanently deleted locally
     send2trash(paths.system_slash(local_file_path))
 
 
 def remote_delete(local_file_path):
+    """Deletes a file from Dropbox."""
     remote_file_path = get_remote_file_path(local_file_path)
     log.alert(remote_file_path)
     try:
@@ -91,20 +98,24 @@ def remote_delete(local_file_path):
 
 
 def is_file(remote_item):
+    """Checks if a Dropbox item is a file."""
     return not isinstance(remote_item, dropbox.files.FolderMetadata)
 
 
 def local_modified_time(local_file_path):
+    """Gets the modification time of a local file."""
     return os.path.getmtime(local_file_path)
 
 
 def remote_modified_time(remote_item):
+    """Gets the modification time of a remote Dropbox item."""
     db_naive_time = remote_item.client_modified
     db_utc_time = db_naive_time.replace(tzinfo=timezone.utc)
     return db_utc_time.timestamp()
 
 
 def _fix_local_time(remote_file, remote_file_path):
+    """Sets the local file's modification time to match the remote file."""
     log.note("Fix local time for file")
     file_modified_time = remote_modified_time(remote_file)
     local_file_path = get_local_file_path(remote_file_path)
@@ -118,6 +129,7 @@ def _fix_local_time(remote_file, remote_file_path):
 
 
 def get_remote_folder(remote_folder_path):
+    """Gets the contents of a remote folder."""
     return [
         element
         for element in _get_all_remote_files()
@@ -127,6 +139,7 @@ def get_remote_folder(remote_folder_path):
 
 
 def _get_all_remote_files_real():
+    """Fetches the list of all remote files from Dropbox."""
     return _db_client.files_list_folder("", recursive=True).entries
 
 
@@ -138,6 +151,7 @@ _all_remote_files_cache = {_CACHE_TIME_KEY: 0.0, _CACHE_DATA_KEY: []}
 
 
 def _get_all_remote_files():
+    """Gets a cached list of all remote files."""
     if utils.is_server_connection_stale(_all_remote_files_cache[_CACHE_TIME_KEY]):
         if _all_remote_files_cache[_CACHE_TIME_KEY] != 0:
             log.note("Last checked in with server over 60 seconds ago, refreshing")
@@ -149,12 +163,14 @@ def _get_all_remote_files():
 
 
 def item_not_found_at_remote(remote_folder, remote_file_path):
+    """Checks if an item is not found in the remote folder."""
     return not any(
         remote_item.path_display == remote_file_path for remote_item in remote_folder
     )
 
 
 def _determine_remotely_deleted_files():
+    """Determines which files have been deleted on Dropbox since the last run."""
     cursor_last_run = state_cache.cursor_from_last_run
     log.fyi("Scanning for any remotely deleted files since last Drupebox run")
     if cursor_last_run != "":
@@ -174,11 +190,13 @@ def _determine_remotely_deleted_files():
 
 @cache
 def remotely_deleted_files():
+    """Gets a cached list of remotely deleted files."""
     # uses cache decorator, so after first call, just returns cache of last call
     return _determine_remotely_deleted_files()
 
 
 def get_latest_state():
+    """Gets the latest cursor from Dropbox."""
     return _db_client.files_list_folder_get_latest_cursor("", recursive=True).cursor
 
 

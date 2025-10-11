@@ -19,6 +19,7 @@ from utils import readable_time, is_recent_last_run
 
 
 def action_locally_deleted_files():
+    """Syncs locally deleted files to Dropbox."""
     log.fyi("Syncing any locally deleted files since last Drupebox run")
     if state.excluded_folders_changed():
         log.note(
@@ -32,6 +33,7 @@ def action_locally_deleted_files():
 
 
 def action_folder(remote_folder_path):
+    """Recursively syncs a folder between the local filesystem and Dropbox."""
     log.fyi(remote_folder_path)
 
     local_folder_path = get_local_file_path(remote_folder_path)
@@ -104,6 +106,7 @@ def action_folder(remote_folder_path):
 
 
 def main():
+    """The main function of the Drupebox sync script."""
     print("Drupebox sync started at", readable_time(time.time()))
     action_locally_deleted_files()
 

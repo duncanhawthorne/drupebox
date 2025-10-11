@@ -23,7 +23,7 @@ APP_NAME = "drupebox"
 # Update the APP_KEY variable below to your App key
 
 # default variables below
-# edit config file if want to change after first run
+# edit config file if you want to change after first run
 _APP_KEY_DEFAULT = "1skff241na3x0at"
 _MAX_FILE_SIZE_DEFAULT = 100000000
 _REALLY_DELETE_LOCAL_FILES_DEFAULT = False
@@ -37,6 +37,7 @@ _REALLY_DELETE_LOCAL_FILES_KEY = "really_delete_local_files"
 
 
 def _determine_dropbox_folder_location():
+    """Prompts the user to enter the local Dropbox folder location."""
     while True:
         try:
             default_path = paths.join(paths.home, "Dropbox")
@@ -54,12 +55,14 @@ def _determine_dropbox_folder_location():
 
 
 def _make_new_config_file(config_filename):
+    """Creates a new, empty configuration file."""
     config_tmp = ConfigObj()
     config_tmp.filename = config_filename
     config_tmp.write()
 
 
 def _initialize_config_file(config_tmp):
+    """Initializes the configuration file with default values if they are missing."""
     # if properly configured config file, no action taken
     made_changes = False
     if _APP_KEY_KEY not in config_tmp:
@@ -98,6 +101,7 @@ def _initialize_config_file(config_tmp):
 
 
 def _sanitize_config(config_tmp):
+    """Sanitizes configuration values, such as paths."""
     made_changes = False
     # format dropbox local path with forward slashes on all platforms and end with forward slash to ensure prefix-free
     original_dropbox_path = config_tmp[_DROPBOX_LOCAL_PATH_KEY]
@@ -122,6 +126,7 @@ def _sanitize_config(config_tmp):
 
 
 def _get_config_real():
+    """Loads the configuration from the file, initializes, and sanitizes it."""
     config_dir = paths.join(paths.home, ".config")
     os.makedirs(config_dir, exist_ok=True)
     config_filename = paths.join(config_dir, APP_NAME)
@@ -138,11 +143,13 @@ def _get_config_real():
 
 @cache
 def _get_config():
+    """Returns a cached configuration object."""
     # uses cache decorator, so after first call, just returns cache of last call
     return _get_config_real()
 
 
 def ok_to_delete_files():
+    """Checks if the configuration allows deleting local files."""
     ok_to_delete = _config[_REALLY_DELETE_LOCAL_FILES_KEY]
     if not ok_to_delete:
         log.note(
@@ -153,6 +160,7 @@ def ok_to_delete_files():
 
 
 def _is_excluded_folder(local_folder_path):
+    """Checks if a folder is in the exclusion list."""
     # forward slash at end of path ensures prefix-free
     local_folder_path_with_slash = paths.add_trailing_slash(local_folder_path)
     return any(
@@ -162,6 +170,7 @@ def _is_excluded_folder(local_folder_path):
 
 
 def skip(local_file_path):
+    """Checks if a file should be skipped based on its name or path."""
     local_file_name = paths.get_file_name(local_file_path)
     if (
         any(local_file_name.startswith(prefix) for prefix in {".fuse_hidden"})
@@ -185,14 +194,17 @@ def skip(local_file_path):
 
 
 def file_size_ok(local_file_path):
+    """Checks if a file's size is within the configured limit."""
     return os.path.getsize(local_file_path) < _config[_MAX_FILE_SIZE_KEY]
 
 
 def get_remote_file_path(local_file_path):
+    """Converts a local file path to a remote Dropbox path."""
     return paths.dbfmt(local_file_path[len(dropbox_local_path) :])
 
 
 def get_local_file_path(remote_file_path):
+    """Converts a remote Dropbox path to a local file path."""
     return paths.join(dropbox_local_path, remote_file_path)
 
 

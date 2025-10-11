@@ -7,6 +7,7 @@ import paths
 
 
 def _get_live_local_tree():
+    """Gets a list of all files and directories in the local Dropbox folder."""
     # get full list of local files in the Drupebox folder
     tree = []
     for root, dirs, files in os.walk(
@@ -29,11 +30,13 @@ def _get_live_local_tree():
 
 
 def _store_tree(tree):
+    """Stores the local file tree to a cache file."""
     with open(_tree_cache_file, "w", encoding="utf-8") as f:
         f.write("\n".join(tree))
 
 
 def _load_tree():
+    """Loads the local file tree from the cache file."""
     if not paths.exists(_tree_cache_file):
         return []
     with open(_tree_cache_file, "r", encoding="utf-8") as f:
@@ -44,6 +47,7 @@ def _load_tree():
 
 
 def determine_locally_deleted_files():
+    """Determines which files have been deleted locally since the last run."""
     # need to maintain order of two lists
     tree_now = _get_live_local_tree()
     tree_last = _load_tree()
@@ -51,6 +55,7 @@ def determine_locally_deleted_files():
 
 
 def store_current_tree():
+    """Stores the current local file tree to the cache file."""
     _store_tree(_get_live_local_tree())
 
 

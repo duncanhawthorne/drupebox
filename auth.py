@@ -5,6 +5,14 @@ import dropbox
 
 
 def dropbox_authorize(app_key):
+    """Guides the user through the Dropbox authorization process.
+
+    Args:
+        app_key: The Dropbox application key.
+
+    Returns:
+        The refresh token obtained after successful authorization.
+    """
     flow = dropbox.DropboxOAuth2FlowNoRedirect(
         app_key, use_pkce=True, token_access_type="offline"
     )

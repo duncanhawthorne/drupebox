@@ -13,6 +13,7 @@ _EXCLUDED_FOLDER_PATHS_FROM_LAST_RUN_KEY = "excluded_folder_paths_from_last_run"
 
 
 def _load_last_run_state():
+    """Loads the state from the last run, initializing if it doesn't exist."""
     cache_filename = _state_cache_file
     if not paths.exists(cache_filename):
         cache_tmp = ConfigObj()
@@ -27,6 +28,7 @@ def _load_last_run_state():
 
 
 def store_state(cursor):
+    """Stores the current state to the cache file."""
     cache_filename = _state_cache_file
     cached_tmp = ConfigObj(cache_filename)
     cached_tmp[_CURSOR_FROM_LAST_RUN_KEY] = cursor
@@ -36,6 +38,7 @@ def store_state(cursor):
 
 
 def excluded_folders_changed():
+    """Checks if the excluded folders have changed since the last run."""
     return (
         not _state_last_run[_EXCLUDED_FOLDER_PATHS_FROM_LAST_RUN_KEY]
         == config.excluded_folder_paths
