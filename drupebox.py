@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 if __name__ == "__main__":
     # print early to give user feedback as imports can take a few seconds on raspberry pi

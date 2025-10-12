@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-
 def note(text):
     """Prints a note to the console."""
     print(">>>>>>", text)
