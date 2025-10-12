@@ -58,7 +58,7 @@ def _determine_dropbox_folder_location():
             print(e)
 
 
-def _initialize_config_file(config_tmp):
+def _initialize_config_file(config_tmp: ConfigObj):
     """Initializes the configuration file with default values if they are missing."""
     made_changes = False
     for key, value in _DEFAULTS.items():
@@ -86,7 +86,7 @@ def _initialize_config_file(config_tmp):
     config_tmp[_MAX_FILE_SIZE_KEY] = int(config_tmp[_MAX_FILE_SIZE_KEY])
 
 
-def _sanitize_config(config_tmp):
+def _sanitize_config(config_tmp: ConfigObj):
     """Sanitizes configuration values, such as paths."""
     made_changes = False
     # format dropbox local path with forward slashes on all platforms and end with forward slash to ensure prefix-free
@@ -111,7 +111,7 @@ def _sanitize_config(config_tmp):
         config_tmp.write()
 
 
-def _get_config_real():
+def _get_config_real() -> ConfigObj:
     """Loads the configuration from the file, initializes, and sanitizes it."""
     config_dir = paths.join(paths.home, ".config")
 
@@ -126,13 +126,13 @@ def _get_config_real():
 
 
 @cache
-def _get_config():
+def _get_config() -> ConfigObj:
     """Returns a cached configuration object."""
     # uses cache decorator, so after first call, just returns cache of last call
     return _get_config_real()
 
 
-def ok_to_delete_files():
+def ok_to_delete_files() -> bool:
     """Checks if the configuration allows deleting local files."""
     ok_to_delete = _config[_REALLY_DELETE_LOCAL_FILES_KEY]
     if not ok_to_delete:
@@ -143,7 +143,7 @@ def ok_to_delete_files():
     return ok_to_delete
 
 
-def _is_excluded_folder(local_folder_path):
+def _is_excluded_folder(local_folder_path: str) -> bool:
     """Checks if a folder is in the exclusion list."""
     # forward slash at end of path ensures prefix-free matching
     local_folder_path_with_slash = paths.add_trailing_slash(local_folder_path)
@@ -163,7 +163,7 @@ _IGNORED_FILENAMES = {
 }
 
 
-def skip(local_file_path):
+def skip(local_file_path: str) -> bool:
     """Checks if a file should be skipped based on its name or path."""
     local_file_name = paths.get_file_name(local_file_path)
     should_skip = (
@@ -177,17 +177,17 @@ def skip(local_file_path):
     return should_skip
 
 
-def file_size_ok(local_file_path):
+def file_size_ok(local_file_path: str) -> bool:
     """Checks if a file's size is within the configured limit."""
     return os.path.getsize(local_file_path) < _config[_MAX_FILE_SIZE_KEY]
 
 
-def get_remote_file_path(local_file_path):
+def get_remote_file_path(local_file_path: str) -> str:
     """Converts a local file path to a remote Dropbox path."""
     return paths.dbfmt(local_file_path.removeprefix(dropbox_local_path))
 
 
-def get_local_file_path(remote_file_path):
+def get_local_file_path(remote_file_path: str) -> str:
     """Converts a remote Dropbox path to a local file path."""
     return paths.join(dropbox_local_path, remote_file_path)
 

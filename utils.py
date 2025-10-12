@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 is_windows = os.path.sep == "\\" and sys.platform == "win32"
 
 
-def readable_time(unix_time):
+def readable_time(unix_time: float) -> str:
     """Converts a Unix timestamp to a human-readable string."""
     return (
         datetime.fromtimestamp(float(unix_time), tz=timezone.utc).strftime(
@@ -16,12 +16,12 @@ def readable_time(unix_time):
     )
 
 
-def is_server_connection_stale(t):
+def is_server_connection_stale(t: float) -> bool:
     """Checks if the server connection is stale."""
     return time.time() > t + 60
 
 
-def is_recent_last_run(t):
+def is_recent_last_run(t: float) -> bool:
     """Checks if the last run was recent."""
     # ensures have run drupebox recently
     # This test is used before delete local file

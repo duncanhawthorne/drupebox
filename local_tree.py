@@ -11,7 +11,7 @@ _tree_cache_file = paths.join(paths.cache_folder, config.APP_NAME + "_last_seen_
 def _get_live_local_tree() -> Set[str]:
     """Gets a set of all files and directories in the local Dropbox folder."""
     # get full list of local files in the Drupebox folder
-    tree = set()
+    tree: Set = set()
     # remove trailing slashes from excluded paths
     # (which are forced to have trailing slashes)
     # to match format produced by paths.join

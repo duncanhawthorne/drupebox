@@ -18,7 +18,7 @@ _DEFAULTS = {
 _state_cache_file = paths.join(paths.cache_folder, config.APP_NAME + "_last_state")
 
 
-def _load_last_run_state():
+def _load_last_run_state() -> ConfigObj:
     """Loads the state from the last run, initializing if it doesn't exist."""
     cache_tmp = ConfigObj(_state_cache_file, encoding="utf-8")
     for key, value in _DEFAULTS.items():
@@ -28,7 +28,7 @@ def _load_last_run_state():
     return cache_tmp
 
 
-def store_state(cursor):
+def store_state(cursor: str):
     """Stores the current state to the cache file."""
     cache_filename = _state_cache_file
     cached_tmp = ConfigObj(cache_filename)
@@ -40,7 +40,7 @@ def store_state(cursor):
     cached_tmp.write()
 
 
-def excluded_folders_changed():
+def excluded_folders_changed() -> bool:
     """Checks if the excluded folders have changed since the last run."""
     return (
         set(_state_last_run[_EXCLUDED_FOLDER_PATHS_FROM_LAST_RUN_KEY])
