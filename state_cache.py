@@ -11,22 +11,22 @@ _CURSOR_FROM_LAST_RUN_KEY = "cursor_from_last_run"
 _TIME_FROM_LAST_RUN_KEY = "time_from_last_run"
 _EXCLUDED_FOLDER_PATHS_FROM_LAST_RUN_KEY = "excluded_folder_paths_from_last_run"
 
+_DEFAULTS = {
+    _CURSOR_FROM_LAST_RUN_KEY: "",
+    _TIME_FROM_LAST_RUN_KEY: 0.0,
+    _EXCLUDED_FOLDER_PATHS_FROM_LAST_RUN_KEY: [],
+}
+
 _state_cache_file = paths.join(paths.cache_folder, config.APP_NAME + "_last_state")
 
 
 def _load_last_run_state():
     """Loads the state from the last run, initializing if it doesn't exist."""
     cache_tmp = ConfigObj(_state_cache_file, encoding="utf-8")
-
-    if _CURSOR_FROM_LAST_RUN_KEY not in cache_tmp:
-        cache_tmp[_CURSOR_FROM_LAST_RUN_KEY] = ""
-    if _TIME_FROM_LAST_RUN_KEY not in cache_tmp:
-        cache_tmp[_TIME_FROM_LAST_RUN_KEY] = 0.0
-    if _EXCLUDED_FOLDER_PATHS_FROM_LAST_RUN_KEY not in cache_tmp:
-        cache_tmp[_EXCLUDED_FOLDER_PATHS_FROM_LAST_RUN_KEY] = []
-
+    for key, value in _DEFAULTS.items():
+        if key not in cache_tmp:
+            cache_tmp[key] = value
     cache_tmp[_TIME_FROM_LAST_RUN_KEY] = float(cache_tmp[_TIME_FROM_LAST_RUN_KEY])
-
     return cache_tmp
 
 

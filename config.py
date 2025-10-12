@@ -22,18 +22,24 @@ APP_NAME = "drupebox"
 # On the Settings tab, copy the App key
 # Update the APP_KEY variable below to your App key
 
-# default variables below
-# edit config file if you want to change after first run
-_APP_KEY_DEFAULT = "1skff241na3x0at"
-_MAX_FILE_SIZE_DEFAULT = 100000000
-_REALLY_DELETE_LOCAL_FILES_DEFAULT = False
-
 _APP_KEY_KEY = "app_key"
 _REFRESH_TOKEN_KEY = "refresh_token"
 _DROPBOX_LOCAL_PATH_KEY = "dropbox_local_path"
 _MAX_FILE_SIZE_KEY = "max_file_size"
 _EXCLUDED_FOLDER_PATHS_KEY = "excluded_folder_paths"
 _REALLY_DELETE_LOCAL_FILES_KEY = "really_delete_local_files"
+
+# default variables below
+# edit config file if you want to change after first run
+_DEFAULTS = {
+    _APP_KEY_KEY: "1skff241na3x0at",
+    _MAX_FILE_SIZE_KEY: 100000000,
+    _REALLY_DELETE_LOCAL_FILES_KEY: False,
+    _EXCLUDED_FOLDER_PATHS_KEY: [
+        "/home/pi/SUPER_SECRET_LOCATION_1/",
+        "/home/pi/SUPER SECRET LOCATION 2/",
+    ],
+}
 
 
 def _determine_dropbox_folder_location():
@@ -56,11 +62,12 @@ def _determine_dropbox_folder_location():
 
 def _initialize_config_file(config_tmp):
     """Initializes the configuration file with default values if they are missing."""
-    # if properly configured config file, no action taken
     made_changes = False
-    if _APP_KEY_KEY not in config_tmp:
-        config_tmp[_APP_KEY_KEY] = _APP_KEY_DEFAULT
-        made_changes = True
+    for key, value in _DEFAULTS.items():
+        if key not in config_tmp:
+            config_tmp[key] = value
+            made_changes = True
+
     if _REFRESH_TOKEN_KEY not in config_tmp:
         config_tmp[_REFRESH_TOKEN_KEY] = auth.dropbox_authorize(
             config_tmp[_APP_KEY_KEY]
@@ -68,18 +75,6 @@ def _initialize_config_file(config_tmp):
         made_changes = True
     if _DROPBOX_LOCAL_PATH_KEY not in config_tmp:
         config_tmp[_DROPBOX_LOCAL_PATH_KEY] = _determine_dropbox_folder_location()
-        made_changes = True
-    if _MAX_FILE_SIZE_KEY not in config_tmp:
-        config_tmp[_MAX_FILE_SIZE_KEY] = _MAX_FILE_SIZE_DEFAULT
-        made_changes = True
-    if _EXCLUDED_FOLDER_PATHS_KEY not in config_tmp:
-        config_tmp[_EXCLUDED_FOLDER_PATHS_KEY] = [
-            "/home/pi/SUPER_SECRET_LOCATION_1/",
-            "/home/pi/SUPER SECRET LOCATION 2/",
-        ]
-        made_changes = True
-    if _REALLY_DELETE_LOCAL_FILES_KEY not in config_tmp:
-        config_tmp[_REALLY_DELETE_LOCAL_FILES_KEY] = _REALLY_DELETE_LOCAL_FILES_DEFAULT
         made_changes = True
 
     if made_changes:
@@ -160,28 +155,28 @@ def _is_excluded_folder(local_folder_path):
     )
 
 
+_IGNORED_FILENAME_PREFIXES = (".fuse_hidden",)
+_IGNORED_FILENAME_SUFFIXES = (".pyc", "__pycache__", ".git")
+_IGNORED_FILENAMES = {
+    ".DS_Store",
+    "._.DS_Store",
+    "DG1__DS_DIR_HDR",
+    "DG1__DS_VOL_HDR",
+}
+
+
 def skip(local_file_path):
     """Checks if a file should be skipped based on its name or path."""
     local_file_name = paths.get_file_name(local_file_path)
-    if (
-        any(local_file_name.startswith(prefix) for prefix in {".fuse_hidden"})
-        or any(
-            local_file_name.endswith(suffix)
-            for suffix in {".pyc", "__pycache__", ".git"}
-        )
-        or local_file_name
-        in {
-            ".DS_Store",
-            "._.DS_Store",
-            "DG1__DS_DIR_HDR",
-            "DG1__DS_VOL_HDR",
-        }
+    should_skip = (
+        local_file_name.startswith(_IGNORED_FILENAME_PREFIXES)
+        or local_file_name.endswith(_IGNORED_FILENAME_SUFFIXES)
+        or local_file_name in _IGNORED_FILENAMES
         or _is_excluded_folder(local_file_path)
-    ):
+    )
+    if should_skip:
         log.fyi_ignore(local_file_path)
-        return True
-    else:
-        return False
+    return should_skip
 
 
 def file_size_ok(local_file_path):
