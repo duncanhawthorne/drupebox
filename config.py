@@ -17,7 +17,8 @@ APP_NAME = "drupebox"
 # Check "files.content.write" and "files.content.read"
 # Click "Submit"
 # On the Settings tab, copy the App key
-# Update the APP_KEY variable below to your App key
+# Update the _APP_KEY_DEFAULT variable below to your App key
+_APP_KEY_DEFAULT = "1skff241na3x0at"
 
 _APP_KEY_KEY = "app_key"
 _REFRESH_TOKEN_KEY = "refresh_token"
@@ -29,7 +30,7 @@ _REALLY_DELETE_LOCAL_FILES_KEY = "really_delete_local_files"
 # default variables below
 # edit config file if you want to change after first run
 _DEFAULTS = {
-    _APP_KEY_KEY: "1skff241na3x0at",
+    _APP_KEY_KEY: _APP_KEY_DEFAULT,
     _MAX_FILE_SIZE_KEY: 100000000,
     _REALLY_DELETE_LOCAL_FILES_KEY: False,
     _EXCLUDED_FOLDER_PATHS_KEY: [
