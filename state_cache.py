@@ -11,6 +11,8 @@ _CURSOR_FROM_LAST_RUN_KEY = "cursor_from_last_run"
 _TIME_FROM_LAST_RUN_KEY = "time_from_last_run"
 _EXCLUDED_FOLDER_PATHS_FROM_LAST_RUN_KEY = "excluded_folder_paths_from_last_run"
 
+_state_cache_file = paths.join(paths.cache_folder, config.APP_NAME + "_last_state")
+
 
 def _load_last_run_state():
     """Loads the state from the last run, initializing if it doesn't exist."""
@@ -46,7 +48,6 @@ def excluded_folders_changed():
     )
 
 
-_state_cache_file = paths.join(paths.cache_folder, config.APP_NAME + "_last_state")
 _state_last_run = _load_last_run_state()
 
 time_last_run = _state_last_run[_TIME_FROM_LAST_RUN_KEY]
