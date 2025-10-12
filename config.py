@@ -152,11 +152,11 @@ def ok_to_delete_files():
 
 def _is_excluded_folder(local_folder_path):
     """Checks if a folder is in the exclusion list."""
-    # forward slash at end of path ensures prefix-free
+    # forward slash at end of path ensures prefix-free matching
     local_folder_path_with_slash = paths.add_trailing_slash(local_folder_path)
     return any(
         local_folder_path_with_slash.startswith(excluded_path)
-        for excluded_path in excluded_folder_paths
+        for excluded_path in excluded_folder_paths_set
     )
 
 
@@ -203,5 +203,6 @@ _config = _get_config()
 
 dropbox_local_path = _config[_DROPBOX_LOCAL_PATH_KEY]
 excluded_folder_paths = _config[_EXCLUDED_FOLDER_PATHS_KEY]
+excluded_folder_paths_set = set(excluded_folder_paths)
 app_key = _config[_APP_KEY_KEY]
 refresh_token = _config[_REFRESH_TOKEN_KEY]

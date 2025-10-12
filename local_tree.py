@@ -11,19 +11,21 @@ _tree_cache_file = paths.join(paths.cache_folder, config.APP_NAME + "_last_seen_
 
 
 def _get_live_local_tree() -> Set[str]:
-    """Gets a list of all files and directories in the local Dropbox folder."""
+    """Gets a set of all files and directories in the local Dropbox folder."""
     # get full list of local files in the Drupebox folder
     tree = set()
-    excluded_paths_set = set(config.excluded_folder_paths)
     for root, dirs, files in os.walk(
         config.dropbox_local_path, topdown=True, followlinks=True
     ):
         root = paths.unix_slash(root)  # format with forward slashes on all platforms
+        # filter out excluded directories
+        # test with slash at end to match excluded_folder_paths format
         dirs[:] = (
             d
             for d in dirs
-            if paths.add_trailing_slash(paths.join(root, d)) not in excluded_paths_set
-        )  # test with slash at end to match excluded_folder_paths and to ensure prefix-free matching
+            if paths.add_trailing_slash(paths.join(root, d))
+            not in config.excluded_folder_paths_set
+        )
         tree.update(paths.join(root, name) for name in chain(files, dirs))
     return tree
 
@@ -47,10 +49,8 @@ def determine_locally_deleted_files() -> List[str]:
     tree_now = _get_live_local_tree()
     tree_last = _load_tree()
     deleted_files = tree_last - tree_now
-    deleted_files_list = list(deleted_files)
     # Sort longest to smallest so that files get processed before their parent folders.
-    deleted_files_list.sort(key=len, reverse=True)
-    return deleted_files_list
+    return sorted(list(deleted_files), key=len, reverse=True)
 
 
 def store_current_tree():
