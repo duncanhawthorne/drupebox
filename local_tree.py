@@ -12,18 +12,16 @@ def _get_live_local_tree() -> Set[str]:
     """Gets a set of all files and directories in the local Dropbox folder."""
     # get full list of local files in the Drupebox folder
     tree = set()
+    # remove slashes from excluded paths to match format produced by paths.join
+    excluded_paths = set(
+        path.removesuffix("/") for path in config.excluded_folder_paths_set
+    )
     for root, dirs, files in os.walk(
         config.dropbox_local_path, topdown=True, followlinks=True
     ):
         root = paths.unix_slash(root)  # format with forward slashes on all platforms
         # filter out excluded directories
-        # test with slash at end to match excluded_folder_paths format
-        dirs[:] = (
-            d
-            for d in dirs
-            if paths.add_trailing_slash(paths.join(root, d))
-            not in config.excluded_folder_paths_set
-        )
+        dirs[:] = (d for d in dirs if paths.join(root, d) not in excluded_paths)
         tree.update(paths.join(root, name) for name in chain(files, dirs))
     return tree
 

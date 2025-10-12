@@ -34,15 +34,17 @@ def store_state(cursor):
     cached_tmp = ConfigObj(cache_filename)
     cached_tmp[_CURSOR_FROM_LAST_RUN_KEY] = cursor
     cached_tmp[_TIME_FROM_LAST_RUN_KEY] = time.time()
-    cached_tmp[_EXCLUDED_FOLDER_PATHS_FROM_LAST_RUN_KEY] = config.excluded_folder_paths
+    cached_tmp[_EXCLUDED_FOLDER_PATHS_FROM_LAST_RUN_KEY] = list(
+        config.excluded_folder_paths_set
+    )
     cached_tmp.write()
 
 
 def excluded_folders_changed():
     """Checks if the excluded folders have changed since the last run."""
     return (
-        _state_last_run[_EXCLUDED_FOLDER_PATHS_FROM_LAST_RUN_KEY]
-        != config.excluded_folder_paths
+        set(_state_last_run[_EXCLUDED_FOLDER_PATHS_FROM_LAST_RUN_KEY])
+        != config.excluded_folder_paths_set
     )
 
 

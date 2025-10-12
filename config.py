@@ -195,7 +195,6 @@ def get_local_file_path(remote_file_path):
 _config = _get_config()
 
 dropbox_local_path = _config[_DROPBOX_LOCAL_PATH_KEY]
-excluded_folder_paths = _config[_EXCLUDED_FOLDER_PATHS_KEY]
-excluded_folder_paths_set = set(excluded_folder_paths)
+excluded_folder_paths_set = set(_config[_EXCLUDED_FOLDER_PATHS_KEY])
 app_key = _config[_APP_KEY_KEY]
 refresh_token = _config[_REFRESH_TOKEN_KEY]
