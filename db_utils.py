@@ -23,21 +23,25 @@ local_file_path -> posix format, no trailing slash
 local_folder_path -> posix format, no trailing slash
 """
 
+_db_client = dropbox.Dropbox(
+    app_key=config.app_key, oauth2_refresh_token=config.refresh_token
+)
+
 
 def upload(local_file_path, remote_file_path):
     """Uploads a local file to Dropbox."""
-    if config.file_size_ok(local_file_path):
-        print("upload", remote_file_path)
-        with open(local_file_path, "rb") as f:
-            remote_file = _db_client.files_upload(
-                f.read(),
-                remote_file_path,
-                mute=True,
-                mode=dropbox.files.WriteMode("overwrite", None),
-            )
-        _fix_local_time(remote_file, remote_file_path)
-    else:
+    if not config.file_size_ok(local_file_path):
         log.note("File above max size, ignoring: " + remote_file_path)
+        return
+    print("upload", remote_file_path)
+    with open(local_file_path, "rb") as f:
+        remote_file = _db_client.files_upload(
+            f.read(),
+            remote_file_path,
+            mute=True,
+            mode=dropbox.files.WriteMode("overwrite", None),
+        )
+    _fix_local_time(remote_file, remote_file_path)
 
 
 def create_remote_folder(remote_file_path):
@@ -171,19 +175,18 @@ def _determine_remotely_deleted_files():
     """Determines which files have been deleted on Dropbox since the last run."""
     cursor_last_run = state_cache.cursor_from_last_run
     log.fyi("Scanning for any remotely deleted files since last Drupebox run")
-    if cursor_last_run != "":
-        deleted_files = [
-            delta.path_display
-            for delta in _db_client.files_list_folder_continue(cursor_last_run).entries
-            if isinstance(delta, dropbox.files.DeletedMetadata)
-        ]
-        if deleted_files:  # test not empty
-            log.note("The following files were deleted on Dropbox since last run")
-            for deleted_file in deleted_files:
-                log.note(deleted_file)
-        return deleted_files
-    else:
+    if cursor_last_run == "":
         return []
+    deleted_files = [
+        delta.path_display
+        for delta in _db_client.files_list_folder_continue(cursor_last_run).entries
+        if isinstance(delta, dropbox.files.DeletedMetadata)
+    ]
+    if deleted_files:  # test not empty
+        log.note("The following files were deleted on Dropbox since last run")
+        for deleted_file in deleted_files:
+            log.note(deleted_file)
+    return deleted_files
 
 
 @cache
@@ -196,8 +199,3 @@ def remotely_deleted_files():
 def get_latest_state():
     """Gets the latest cursor from Dropbox."""
     return _db_client.files_list_folder_get_latest_cursor("", recursive=True).cursor
-
-
-_db_client = dropbox.Dropbox(
-    app_key=config.app_key, oauth2_refresh_token=config.refresh_token
-)

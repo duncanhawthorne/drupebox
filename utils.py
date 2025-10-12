@@ -3,6 +3,8 @@ import sys
 import time
 from datetime import datetime, timezone
 
+is_windows = os.path.sep == "\\" and sys.platform == "win32"
+
 
 def readable_time(unix_time):
     """Converts a Unix timestamp to a human-readable string."""
@@ -28,6 +30,3 @@ def is_recent_last_run(t):
     # If haven't ran drupebox recently there is higher risk this is not an intentional remote deletion,
     # and therefore don't take the risk to delete local file
     return t > time.time() - 60 * 60 * 2
-
-
-is_windows = os.path.sep == "\\" and sys.platform == "win32"
