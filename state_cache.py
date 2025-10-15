@@ -30,8 +30,7 @@ def _load_last_run_state() -> ConfigObj:
 
 def store_state(cursor: str):
     """Stores the current state to the cache file."""
-    cache_filename = _state_cache_file
-    cached_tmp = ConfigObj(cache_filename)
+    cached_tmp = ConfigObj(_state_cache_file)
     cached_tmp[_CURSOR_FROM_LAST_RUN_KEY] = cursor
     cached_tmp[_TIME_FROM_LAST_RUN_KEY] = time.time()
     cached_tmp[_EXCLUDED_FOLDER_PATHS_FROM_LAST_RUN_KEY] = list(

@@ -120,15 +120,9 @@ def remote_modified_time(remote_item: FileMetadata) -> float:
 def _fix_local_time(remote_file: FileMetadata, remote_file_path: str):
     """Sets the local file's modification time to match the remote file."""
     log.note("Fix local time for file")
-    file_modified_time = remote_modified_time(remote_file)
+    file_modified_time = int(remote_modified_time(remote_file))
     local_file_path = get_local_file_path(remote_file_path)
-    os.utime(
-        local_file_path,
-        (
-            int(file_modified_time),
-            int(file_modified_time),
-        ),
-    )
+    os.utime(local_file_path, (file_modified_time, file_modified_time))
 
 
 def get_remote_folder(
