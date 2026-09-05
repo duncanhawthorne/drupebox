@@ -184,11 +184,19 @@ def _determine_remotely_deleted_files() -> List[str]:
     log.fyi("Scanning for any remotely deleted files since last Drupebox run")
     if cursor_last_run == "":
         return []
-    deleted_files = [
-        delta.path_display
-        for delta in _db_client.files_list_folder_continue(cursor_last_run).entries
-        if isinstance(delta, dropbox.files.DeletedMetadata)
-    ]
+
+    deleted_files = []
+    has_more = True
+    cursor = cursor_last_run
+
+    while has_more:
+        res = _db_client.files_list_folder_continue(cursor)
+        for delta in res.entries:
+            if isinstance(delta, dropbox.files.DeletedMetadata):
+                deleted_files.append(delta.path_display)
+        has_more = res.has_more
+        cursor = res.cursor
+
     if deleted_files:  # test not empty
         log.note("The following files were deleted on Dropbox since last run")
         for deleted_file in deleted_files:
