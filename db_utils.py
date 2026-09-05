@@ -139,7 +139,12 @@ def get_remote_folder(
 
 def _get_all_remote_files_real() -> List[Union[FolderMetadata, FileMetadata]]:
     """Fetches the list of all remote files from Dropbox."""
-    return _db_client.files_list_folder("", recursive=True).entries
+    res = _db_client.files_list_folder("", recursive=True)
+    entries = res.entries
+    while res.has_more:
+        res = _db_client.files_list_folder_continue(res.cursor)
+        entries.extend(res.entries)
+    return entries
 
 
 _CACHE_DATA_KEY = "data"
